@@ -9,11 +9,11 @@ Updated: 2026-11-03. Planning only; implementation has not started.
 - **Platform:** Windows 10 and 11, x64; Linux later.
 - **Stack:** Tauri + React/TypeScript + Rust + SQLite.
 - **Library:** Installed games only on each device, through Steam/Epic local discovery and manual folders. Signing in must not add uninstalled titles to the local library.
-- **Accounts and sync:** Save the user's account for use across devices. Sync preferences, optimisation history, and backup files. Steam/Epic sign-in remains in scope; identity linking and cloud infrastructure need technical design.
+- **Local data and accounts:** No cloud implementation. Preferences, optimisation history, and backups stay on each device; no automatic cross-device sync. This supersedes the earlier cloud-sync requirement. Steam/Epic sign-in remains a prior requirement, with sessions remembered locally where supported; the same provider account can be used separately on another device.
 - **Analysis:** Games sorted by installation size, file distribution with size/count views, and largest files.
 - **Compression:** LZX, decompression, progress, cancellation, interrupted-job recovery, and measured before/after disk usage.
 - **Videos:** A small tested set of games/formats, previews, backups, and restoration.
-- **Backups:** Mandatory originals backup for video conversion. Users choose location and retention, with a minimum of seven days and automatic deletion at expiry. No-backup mode is excluded. Proposed default retention: seven days.
+- **Backups:** Mandatory local originals backup for video conversion. Users choose location and retention, with a minimum of seven days and automatic deletion at expiry. No-backup mode is excluded. Proposed default retention: seven days.
 - **Window close:** Continue active jobs in the system tray when the window is closed.
 - **UI:** Keep the supplied style; minimise visible information and show only what is needed.
 
@@ -34,7 +34,7 @@ Keep charcoal surfaces, orange actions, green savings, cyan progress, and the su
 | Compression | Selected game/size, LZX, Start, actionable issues | File selection, exclusions, Decompress |
 | Videos | Supported videos, 1080p target, preview, backup location/expiry, net savings, Start | Media properties, unsupported reasons |
 | Jobs | Game, operation, progress, Cancel, result | Errors, retry, recovery, history |
-| Settings | Account, sync status, library paths, backup location/retention, Restore | Backup inventory, cloud usage, temporary storage, diagnostics |
+| Settings | Account connections, library paths, local backup location/retention, Restore | Backup inventory, temporary storage, diagnostics |
 
 Proposed navigation: Library, Jobs, Settings. Game details and operation setup open within the selected game's flow. Retain the original donut requirement rather than displaying both a donut and the mockup's stacked bar.
 
@@ -44,6 +44,7 @@ Omit drive-health panels, kernel/cluster jargon, throughput counters, theme edit
 
 ## Scope boundaries
 
+- No GameZip cloud backend, hosted account database, cloud backups, or cross-device data sync. Provider sign-in does not imply syncing GameZip data.
 - LZX is the first-release algorithm. Extra algorithms, DirectStorage hooks, TRIM/cleanup, shader-cache clearing, and GOG account integration are not agreed features.
 - Boosters, Linux, and AnyPS5 compatibility remain future work. AnyPS5 requires separate per-game/tool validation.
 - Mockup games, sizes, savings, formats, and performance claims are examples, not results.
@@ -53,26 +54,25 @@ Omit drive-health panels, kernel/cluster jargon, throughput counters, theme edit
 
 ## Proposed implementation behaviour
 
-React presents the UI; Rust owns local operations; SQLite stores local scans, jobs, settings, and backup manifests. Cross-device sync additionally needs an account service, shared metadata storage, and cloud file storage; providers and hosting are not yet selected. Separate discovery, analysis, platform compression, media conversion, recovery, and sync.
+React presents the UI; Rust owns local operations; SQLite stores local scans, jobs, settings, and backup manifests. Backup files remain in the user's selected local location. Separate discovery, analysis, platform compression, media conversion, and recovery; no cloud service or sync layer is needed.
 
 1. **Analysis:** Separate logical and allocated bytes. Handle overlapping roots, hard links, junctions, and denied paths without misleading totals. Measure savings from comparable snapshots; avoid double-counting repeated jobs.
 2. **Compression:** Check NTFS support, permissions, space, and running-game conflicts. Validate per-file compact.exe LZX compression/decompression before selecting a native API alternative. Never change OS-wide CompactOS settings.
 3. **Jobs:** Begin with one modifying job at a time. Persist per-file state. Closing the window leaves jobs running in the tray; reopening shows current progress. Provide an explicit tray Quit action, proposed to stop safely before exiting. Cancel stops new work and shows “Stopping” while current work reaches a safe boundary. Completed files remain compressed. After restart, inspect real file state before retrying; do not promise chunk-level resume. Queue hold is distinct from active-job pause.
 4. **Videos:** Probe, preview, create a separate output, validate it, preserve the original, then replace. Journal stages and hashes for recovery. Recheck files before replacement/restoration; updates or other changes become conflicts requiring review.
-5. **Storage:** Show temporary space, backup space, and net savings separately. Restore from verified backups. Enforce a minimum seven-day retention and automatic expiry using the selected duration. Proposed lifecycle: start the retention clock after successful replacement and a verified recovery copy; retain failed/incomplete recovery data until reconciled. Show the deletion date before conversion. Local expiry cleanup runs while GameZip is running or at its next start if it was closed; cloud expiry needs independent enforcement. Confirm how expiry applies to local/cloud copies and active restores before implementation.
-6. **Accounts:** Keep local operation usable without login. Sync preferences and history under the user's account while keeping installation paths and live job state device-specific. History from another device must not become a local installation. Use provider-hosted sign-in and disconnect support. Verify identity linking, registration, permissions, callbacks, and hosting before coding. Keep application secrets out of desktop bundles/logs; protect runtime tokens with appropriate OS storage.
-7. **Cloud backups:** Sync backup files as well as metadata. Proposed: resumable transfers, integrity verification, per-account access isolation, visible pending/failed sync states, and restore checks against the destination game/build. Do not claim a backup is available remotely before upload verification or automatically restore it onto another installation. Set provider, storage limits/costs, transfer policy, encryption, and deletion semantics before implementing this feature.
+5. **Storage:** Show temporary space, backup space, and net savings separately. Restore from verified local backups. Enforce a minimum seven-day retention and automatic expiry using the selected duration. Proposed lifecycle: start the retention clock after successful replacement and a verified recovery copy; retain failed/incomplete recovery data until reconciled. Show the deletion date before conversion. Expiry cleanup runs while GameZip is running or at its next start if it was closed; unavailable backup drives are retried when accessible. Confirm handling of active restores before implementation.
+6. **Accounts:** Keep local operation usable without login. Retain preferences, history, installation paths, job state, and backup manifests locally. Use provider-hosted sign-in and disconnect support only where compatible with a desktop app without a GameZip backend. Verify registration, permissions, callbacks, and session persistence separately for Steam/Epic before coding; do not silently introduce hosting to support them. Protect locally remembered tokens with appropriate OS storage, and keep secrets out of source, bundles, and logs.
 
-The behaviours above are proposals except the confirmed decisions at the top. Exact Windows builds, explicit Quit behaviour, update/restore conflict choices, cloud policies, and installer/update policy remain to be settled.
+The behaviours above are proposals except the confirmed decisions at the top. Exact Windows builds, explicit Quit behaviour, update/restore conflict choices, provider sign-in feasibility, and installer/update policy remain to be settled.
 
 ## Milestones
 
 | Milestone | Deliverable and acceptance |
 | --- | --- |
 | 1. Analyser | Simple UI and manual/local discovery; verify totals, missing/denied/duplicate paths, resizing, and scaling |
-| 2. Accounts | Cross-device identity, preference/history sync; verify installed-only libraries, account isolation, sync conflicts, expired sessions, and offline local use |
+| 2. Account connections | Validate provider sign-in without a GameZip backend; verify local session persistence, sign-out, expired sessions, installed-only libraries, and offline local use |
 | 3. Compression | LZX/decompression and persistent jobs; verify unchanged contents, disk savings, tray continuation, cancellation, restart, locks, and low space |
-| 4. Videos and backups | Tested profiles, previews, local/cloud backups, restore, automatic expiry; verify playback/audio, restored hashes, interrupted replacement/upload, minimum retention, expiry while offline, account isolation, and update conflicts |
+| 4. Videos and backups | Tested profiles, previews, local backups, restore, automatic expiry; verify playback/audio, restored hashes, interrupted replacement, minimum retention, cleanup after app restart/drive reconnection, and update conflicts |
 | 5. Release | Installer and dependency/licence checks; test fresh installs on Windows 10/11 x64; remove placeholders and unsupported claims |
 
 Do not start coding while material questions for the affected milestone remain unresolved.
@@ -88,8 +88,8 @@ These are proposed test candidates, not certified GameZip support or predicted s
 
 ## Remaining decisions
 
-1. Select the account/cloud-storage service, identity-linking approach, storage budget/limits, and transfer policy. Verify Steam/Epic sign-in separately; owned but uninstalled library entries remain excluded.
-2. Finalise backup lifecycle details: retention start, local/cloud expiry coordination, and handling pending uploads or active restores. Location and duration are user-selectable; seven days is the mandatory minimum, followed by automatic deletion.
+1. Verify Steam/Epic sign-in and remembered sessions without a GameZip backend; resolve any unsupported flow before implementation. Cloud provider, hosting, and sync-budget decisions are no longer needed.
+2. Finalise local backup lifecycle details: retention start, unavailable drives, and active restores. Location and duration are user-selectable; seven days is the mandatory minimum, followed by automatic deletion.
 3. Choose available test games and validated video formats/builds.
 4. Settle the proposed layout, explicit Quit behaviour, and restore conflicts before implementation. Continuing active jobs in the tray on window close is confirmed.
 
