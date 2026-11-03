@@ -1,6 +1,6 @@
 # GameZip — Project Plan
 
-Updated: 2026-11-03. Planning only; implementation has not started.
+Updated: 2026-11-03. The analyser milestone is implemented and validated locally. See [implementation_status.md](implementation_status.md) for current checks, limitations, and next work.
 
 ## Confirmed decisions
 

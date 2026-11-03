@@ -6,3 +6,10 @@ node_modules/
 target/
 dist/
 *.log
+test-results/
+playwright-report/
+.local/
+app/src-tauri/icons/android/
+app/src-tauri/icons/ios/
+app/src-tauri/icons/Square*.png
+app/src-tauri/icons/StoreLogo.png
