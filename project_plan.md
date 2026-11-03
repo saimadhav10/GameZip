@@ -8,7 +8,7 @@ Updated: 2026-11-03. Planning only; implementation has not started.
 - **Name:** GameZip, replacing the mockups' ApexDrive branding.
 - **Platform:** Windows 10 and 11, x64; Linux later.
 - **Stack:** Tauri + React/TypeScript + Rust + SQLite.
-- **Library:** Steam/Epic local discovery AND account login, plus manual folders. Exact account features remain to be defined.
+- **Library:** Installed games only, through Steam/Epic local discovery and manual folders. Steam/Epic account login remains in scope, but must not add owned games that are not installed. Exact account features remain to be defined.
 - **Analysis:** Games sorted by installation size, file distribution with size/count views, and largest files.
 - **Compression:** LZX, decompression, progress, cancellation, interrupted-job recovery, and measured before/after disk usage.
 - **Videos:** A small tested set of games/formats, previews, backups, and restoration.
@@ -58,7 +58,7 @@ React presents the UI; Rust owns local operations; SQLite stores scans, jobs, se
 3. **Jobs:** Begin with one modifying job at a time. Persist per-file state. Cancel stops new work and shows “Stopping” while current work reaches a safe boundary. Completed files remain compressed. After restart, inspect real file state before retrying; do not promise chunk-level resume. Queue hold is distinct from active-job pause.
 4. **Videos:** Probe, preview, create a separate output, validate it, preserve the original, then replace. Journal stages and hashes for recovery. Recheck files before replacement/restoration; updates or other changes become conflicts requiring review.
 5. **Storage:** Show temporary space, backup space, and net savings separately. Restore from verified backups. Do not delete retained originals merely because a job failed or time elapsed.
-6. **Accounts:** Keep local operation usable without login. Use provider-hosted sign-in and disconnect support. Verify registration, permissions, callbacks, and any hosted service before coding. Keep application secrets out of desktop bundles/logs; protect runtime tokens with appropriate OS storage.
+6. **Accounts:** Keep local operation usable without login. Account connections must not populate the library with uninstalled titles; local installation discovery determines library eligibility. Use provider-hosted sign-in and disconnect support. Verify registration, permissions, callbacks, and any hosted service before coding. Keep application secrets out of desktop bundles/logs; protect runtime tokens with appropriate OS storage.
 
 These are proposals, not additional approved requirements. Exact Windows builds, app-close behaviour during jobs, update/restore conflict choices, and installer/update policy remain to be settled.
 
@@ -67,7 +67,7 @@ These are proposals, not additional approved requirements. Exact Windows builds,
 | Milestone | Deliverable and acceptance |
 | --- | --- |
 | 1. Analyser | Simple UI and manual/local discovery; verify totals, missing/denied/duplicate paths, resizing, and scaling |
-| 2. Accounts | Agreed Steam/Epic account features; verify provider support, cancelled/expired/private-account cases, and offline local use |
+| 2. Accounts | Agreed Steam/Epic account features; verify installed-only library behaviour, provider support, cancelled/expired/private-account cases, and offline local use |
 | 3. Compression | LZX/decompression and persistent jobs; verify unchanged file contents, disk savings, cancellation, restart, locks, and low space |
 | 4. Videos | Tested profiles, preview, temporary backups, restore; verify in-game playback/audio, restored hashes, interrupted replacement, and update conflicts |
 | 5. Release | Installer and dependency/licence checks; test fresh installs on Windows 10/11 x64; remove placeholders and unsupported claims |
@@ -85,7 +85,7 @@ These are proposed test candidates, not certified GameZip support or predicted s
 
 ## Remaining decisions
 
-1. Should account login provide identity only, or also list owned games that are not installed? Confirm Steam/Epic capabilities separately.
+1. Define the useful account-login features for the installed-only library and verify Steam/Epic capabilities separately. Listing owned but uninstalled games is explicitly excluded.
 2. Accept or adjust seven-day backups with a deletion prompt; decide whether no-backup mode is needed.
 3. Choose available test games and validated video formats/builds.
 4. Settle the proposed layout and job/restore behaviour before implementation.
@@ -96,7 +96,7 @@ These are proposed test candidates, not certified GameZip support or predicted s
 - [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/): Rust, Windows build tools, WebView2.
 - [FFmpeg formats](https://www.ffmpeg.org/general.html): Bink is listed for input, not output; this does not establish a Bink 2 workflow. [FFmpeg usage](https://ffmpeg.org/ffmpeg.html).
 - [Steam sign-in](https://partner.steamgames.com/doc/features/auth?l=english) and [owned-game API](https://partner.steamgames.com/doc/webapi/IPlayerService): identity and library access are separate; library access requires a key and depends on visibility.
-- [Epic Account Services](https://dev.epicgames.com/docs/epic-online-services/accounts-and-social/eos-epic-account-services/epic-account-services-intro): account-service starting point; full-library access for this utility remains unverified.
+- [Epic Account Services](https://dev.epicgames.com/docs/epic-online-services/accounts-and-social/eos-epic-account-services/epic-account-services-intro): account-service starting point; supported account features for this utility remain to be verified. Full owned-library listing is not required.
 - [Baldur's Gate 3 requirements](https://larian.com/support/faqs/system-requirements_47) and [Cyberpunk requirements](https://www.cyberpunk.net/en/news/48271/update-to-pc-system-requirements): installation-scale references, not compression evidence.
 
 ## Working instructions
