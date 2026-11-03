@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<title>ApexDrive Optimiser - Game Analyser</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=JetBrains+Mono:wght@100..900&family=Space+Grotesk:wght@100..900&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary": "#003546",
+            "on-tertiary-container": "#003242",
+            "on-primary-fixed": "#360f00",
+            "primary": "#ffb597",
+            "primary-container": "#ff6200",
+            "background": "#111316",
+            "on-background": "#e2e2e6",
+            "tertiary-container": "#00a1ce",
+            "on-primary-container": "#541b00",
+            "surface-container-low": "#1a1c1f",
+            "outline": "#aa8a7d",
+            "on-secondary-fixed-variant": "#005226",
+            "surface-container-high": "#282a2d",
+            "surface-tint": "#ffb597",
+            "primary-fixed-dim": "#ffb597",
+            "on-error": "#690005",
+            "secondary-container": "#05e777",
+            "surface-dim": "#111316",
+            "tertiary": "#68d3ff",
+            "surface-bright": "#37393d",
+            "on-tertiary-fixed": "#001f2a",
+            "primary-fixed": "#ffdbcd",
+            "surface-container-lowest": "#0c0e11",
+            "on-error-container": "#ffdad6",
+            "surface-container-highest": "#333538",
+            "inverse-on-surface": "#2f3034",
+            "error-container": "#93000a",
+            "on-secondary": "#003918",
+            "error": "#ffb4ab",
+            "inverse-primary": "#a53d00",
+            "surface": "#111316",
+            "surface-variant": "#333538",
+            "on-secondary-fixed": "#00210b",
+            "secondary": "#7dffa2",
+            "surface-container": "#1e2023",
+            "inverse-surface": "#e2e2e6",
+            "on-primary-fixed-variant": "#7e2c00",
+            "on-tertiary-fixed-variant": "#004d64",
+            "tertiary-fixed": "#bee9ff",
+            "on-surface-variant": "#e3bfb1",
+            "outline-variant": "#5a4137",
+            "secondary-fixed-dim": "#00e475",
+            "on-surface": "#e2e2e6",
+            "on-primary": "#591d00",
+            "tertiary-fixed-dim": "#68d3ff",
+            "on-secondary-container": "#00622e",
+            "secondary-fixed": "#62ff96"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "gutter": "1rem",
+            "margin": "1.25rem",
+            "space-lg": "1rem",
+            "space-sm": "0.5rem",
+            "space-xl": "1.5rem",
+            "space-md": "0.75rem"
+          },
+          "fontFamily": {
+            "headline-md": ["Space Grotesk"],
+            "body-md": ["Inter"],
+            "label-data-lg": ["JetBrains Mono"],
+            "label-badge": ["JetBrains Mono"],
+            "body-sm": ["Inter"],
+            "label-data-md": ["JetBrains Mono"],
+            "label-caption": ["Inter"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-xl": ["Space Grotesk"],
+            "headline-sm": ["Space Grotesk"],
+            "body-lg": ["Inter"]
+          },
+          "fontSize": {
+            "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "label-data-lg": ["24px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "label-badge": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-data-md": ["14px", { "lineHeight": "18px", "fontWeight": "600" }],
+            "label-caption": ["11px", { "lineHeight": "14px", "fontWeight": "500" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "fontWeight": "600" }],
+            "headline-xl": ["36px", { "lineHeight": "44px", "fontWeight": "700" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-block;
+    }
+    /* Custom scrollbar for dense data lists */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #111316;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #282a2d;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #333538;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased overflow-hidden select-none">
+<!-- TOP APP BAR (Shared Component JSON Blueprint) -->
+<header class="bg-surface-container-lowest flex justify-between items-center h-10 px-gutter w-full select-none border-b border-outline-variant/30 fixed top-0 left-0 right-0 z-50">
+<div class="flex items-center gap-space-lg">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">speed</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface tracking-tight">ApexDrive Optimiser</span>
+</div>
+<div class="hidden lg:flex items-center bg-surface-container-low px-space-md py-0.5 rounded border border-outline-variant/20 text-body-sm text-outline">
+<span class="material-symbols-outlined mr-space-xs text-outline" data-icon="search">search</span>
+<span>Quick search cluster or partition...</span>
+<span class="ml-space-md font-label-badge text-label-badge text-outline border border-outline-variant/30 px-1 rounded">Ctrl+K</span>
+</div>
+</div>
+<!-- Window System Status & Trailing Actions -->
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-sm">
+<button class="flex items-center gap-space-xs px-space-md py-1 rounded bg-primary-container text-on-primary font-label-data-md text-label-data-md active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined" data-icon="memory">memory</span>
+<span>Scan Now</span>
+</button>
+<button class="px-space-md py-1 rounded bg-surface-container-high/50 text-outline hover:text-on-surface font-label-data-md text-label-data-md transition-colors active:scale-[0.98]">
+<span>Pause Queue</span>
+</button>
+</div>
+<div class="h-4 w-px bg-outline-variant/30 mx-space-xs"></div>
+<div class="flex items-center gap-1 text-outline">
+<button class="p-1 rounded hover:bg-surface-container-high/50 text-outline hover:text-on-surface transition-colors" title="Memory Stats">
+<span class="material-symbols-outlined" data-icon="memory">memory</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-container-high/50 text-outline hover:text-on-surface transition-colors relative" title="Notifications">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container absolute top-1 right-1"></span>
+</button>
+<button class="p-1 rounded hover:bg-surface-container-high/50 text-outline hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="minimize">minimize</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-container-high/50 text-outline hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="check_box_outline_blank">check_box_outline_blank</span>
+</button>
+<button class="p-1 rounded hover:bg-error-container hover:text-error text-outline transition-colors">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+</div>
+</header>
+<!-- MAIN WRAPPER: SideNavBar + Content Area -->
+<div class="flex h-screen pt-10">
+<!-- SIDE NAVIGATION BAR (Shared Component JSON Blueprint) -->
+<!-- Destination matched: "Game Analyser" tab is set to style_active_navigation -->
+<aside class="fixed top-10 left-0 bottom-0 w-64 flex flex-col justify-between p-gutter z-40 bg-surface-container-low border-r border-outline-variant/30 select-none">
+<div class="flex flex-col gap-space-lg">
+<!-- Drive Status Capsule -->
+<div class="p-space-md rounded-lg bg-surface-container border border-outline-variant/20 flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs text-secondary-fixed">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">developer_board</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">NVMe Health 98%</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-secondary-container"></span>
+</div>
+<span class="font-label-data-md text-label-data-md text-outline">Drive C: 248 GB Free</span>
+<button class="mt-space-xs w-full py-1 px-space-sm rounded bg-surface-container-high text-primary hover:bg-surface-container-highest font-label-badge text-label-badge text-center transition-colors">
+            Run Trim & Clean
+          </button>
+</div>
+<!-- 6 Main Navigation Tabs (Active: Game Analyser) -->
+<nav class="flex flex-col gap-1">
+<!-- Library -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="sports_esports">sports_esports</span>
+<span class="font-body-md text-body-md">Library</span>
+</a>
+<!-- Game Analyser (ACTIVE) -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg bg-surface-container-high text-primary-container font-semibold border-l-2 border-primary-container" href="#">
+<span class="material-symbols-outlined text-primary-container" data-icon="analytics" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-body-md text-body-md">Game Analyser</span>
+</a>
+<!-- Compression Setup -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="folder_zip">folder_zip</span>
+<span class="font-body-md text-body-md">Compression Setup</span>
+</a>
+<!-- Video Optimisation -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="movie_filter">movie_filter</span>
+<span class="font-body-md text-body-md">Video Optimisation</span>
+</a>
+<!-- Jobs & Queue -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="pending_actions">pending_actions</span>
+<span class="font-body-md text-body-md">Jobs & Queue</span>
+<span class="ml-auto font-label-badge text-label-badge bg-surface-container px-1.5 py-0.5 rounded text-tertiary">2</span>
+</a>
+<!-- Settings & Storage -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="settings_system_daydream">settings_system_daydream</span>
+<span class="font-body-md text-body-md">Settings & Storage</span>
+</a>
+</nav>
+</div>
+<!-- Footer Action Tabs -->
+<div class="flex flex-col gap-1 border-t border-outline-variant/20 pt-space-md">
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span class="font-body-md text-body-md">Support Logs</span>
+</a>
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-error hover:bg-surface-container/60 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="power_settings_new">power_settings_new</span>
+<span class="font-body-md text-body-md">Exit Session</span>
+</a>
+</div>
+</aside>
+<!-- MAIN GAME ANALYSER CANVAS -->
+<main class="ml-64 flex-1 h-[calc(100vh-2.5rem)] overflow-y-auto bg-background p-margin flex flex-col gap-space-lg">
+<!-- HERO BANNER SECTION: Game Title, Launcher Tag, Install Path, Actions -->
+<section class="relative rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container-low p-space-xl flex flex-col md:flex-row md:items-center justify-between gap-space-lg shadow-sm">
+<!-- Ambient subtle accent glow -->
+<div class="absolute -right-16 -top-16 w-96 h-96 bg-primary-container/10 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute left-1/4 -bottom-20 w-80 h-80 bg-secondary-container/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="relative z-10 flex items-start sm:items-center gap-space-lg">
+<!-- Game Cover Art / Icon Avatar -->
+<div class="w-20 h-20 rounded-lg overflow-hidden shrink-0 border border-outline-variant/40 bg-surface-container relative shadow-md">
+<img class="w-full h-full object-cover" data-alt="Cyberpunk 2077 gritty futuristic neon character portrait against dark night cityscape backdrop in high tech style with golden amber reflections" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6oVMSKRJxDWxGPyS_91V4N-XRkpMr4G6D-c26t66SzXN7wc-ktAKy5DbhMcK9pKZHAIogwhOODWzodqEPsA6S9aPGHE1rUs6k4mWhLwqOKFPJ3VxVt8yfzf7GehyzWlA2mrfm_rZXWswF3MDtb_hy-vlG1iqx82B5eSfEaH1InnhmoI7Vv2m4XHvQD28eZVpNE5pYtP0iqGXO-FkiIxbZRSwUH03sbw-nFfFFivw"/>
+<span class="absolute bottom-1 right-1 bg-surface-container-lowest/80 text-primary-container p-0.5 rounded font-label-badge text-label-badge border border-outline-variant/30">DX12</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center flex-wrap gap-space-sm">
+<h1 class="font-headline-xl text-headline-xl text-on-surface font-bold tracking-tight">Cyberpunk 2077</h1>
+<!-- Launcher Tag -->
+<span class="px-2 py-0.5 rounded font-label-badge text-label-badge bg-tertiary-container/20 text-tertiary border border-tertiary/30 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">sports_esports</span> Steam
+              </span>
+<!-- Drive Identifier -->
+<span class="px-2 py-0.5 rounded font-label-badge text-label-badge bg-surface-container-high text-on-surface border border-outline-variant/30 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-secondary-fixed">storage</span> NVMe D:
+              </span>
+<!-- Engine / Build Info -->
+<span class="px-2 py-0.5 rounded font-label-badge text-label-badge bg-surface-container-high/60 text-outline border border-outline-variant/20">
+                v2.12 H1
+              </span>
+</div>
+<!-- Install Path with Copy & Open Folder -->
+<div class="flex items-center gap-space-sm text-body-sm text-outline mt-0.5">
+<span class="material-symbols-outlined text-sm">folder</span>
+<span class="font-label-data-md text-label-data-md text-on-surface/80 bg-surface-container-lowest/60 px-2 py-0.5 rounded border border-outline-variant/20 truncate max-w-xl">
+                D:\SteamLibrary\steamapps\common\Cyberpunk 2077
+              </span>
+<button class="p-1 rounded hover:bg-surface-container-high text-outline hover:text-on-surface transition-colors" onclick="navigator.clipboard?.writeText('D:\\SteamLibrary\\steamapps\\common\\Cyberpunk 2077')" title="Copy Path">
+<span class="material-symbols-outlined" style="font-size: 16px;">content_copy</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-container-high text-outline hover:text-on-surface transition-colors" title="Open Directory in Explorer">
+<span class="material-symbols-outlined" style="font-size: 16px;">folder_open</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Hero Actions: Launch, Rescan, History -->
+<div class="relative z-10 flex items-center gap-space-sm self-start md:self-center">
+<button class="px-space-lg py-2.5 rounded-lg bg-surface-container-high border border-outline-variant/30 text-on-surface hover:bg-surface-container-highest font-label-data-md text-label-data-md flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-outline">history</span>
+<span>History</span>
+</button>
+<button class="px-space-lg py-2.5 rounded-lg bg-surface-container-high border border-outline-variant/30 text-on-surface hover:bg-surface-container-highest font-label-data-md text-label-data-md flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-outline">sync</span>
+<span>Rescan</span>
+</button>
+<button class="px-space-xl py-2.5 rounded-lg bg-primary-container text-on-primary hover:bg-[#ff771a] font-label-data-md text-label-data-md flex items-center gap-space-xs shadow-md transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+<span>Launch Game</span>
+</button>
+</div>
+</section>
+<!-- KEY METRICS BENTO CARDS -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Card 1: Logical Size -->
+<div class="p-space-lg rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col justify-between">
+<div class="flex items-center justify-between text-body-sm text-outline">
+<span>Logical File Size</span>
+<span class="material-symbols-outlined text-outline">data_object</span>
+</div>
+<div class="my-space-sm">
+<div class="font-label-data-lg text-label-data-lg text-on-surface">88.4 <span class="text-sm font-normal text-outline">GB</span></div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Uncompressed unallocated raw assets</p>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-outline h-full" style="width: 100%;"></div>
+</div>
+</div>
+<!-- Card 2: Actual Size on Disk -->
+<div class="p-space-lg rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col justify-between">
+<div class="flex items-center justify-between text-body-sm text-outline">
+<span>Actual Size on Disk</span>
+<span class="material-symbols-outlined text-secondary-fixed">hard_drive</span>
+</div>
+<div class="my-space-sm">
+<div class="font-label-data-lg text-label-data-lg text-secondary">54.2 <span class="text-sm font-normal text-outline">GB</span></div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Physical blocks assigned on NVMe</p>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 61%;"></div>
+</div>
+</div>
+<!-- Card 3: Files Count -->
+<div class="p-space-lg rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col justify-between">
+<div class="flex items-center justify-between text-body-sm text-outline">
+<span>Total Files Count</span>
+<span class="material-symbols-outlined text-tertiary">inventory_2</span>
+</div>
+<div class="my-space-sm">
+<div class="font-label-data-lg text-label-data-lg text-tertiary">64,210 <span class="text-sm font-normal text-outline">files</span></div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Across 482 nested subdirectories</p>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full" style="width: 78%;"></div>
+</div>
+</div>
+<!-- Card 4: Measured Space Recovered + Additional Callout -->
+<div class="p-space-lg rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-center justify-between text-body-sm text-outline">
+<span>Space Recovered</span>
+<span class="material-symbols-outlined text-primary-container">energy_savings_leaf</span>
+</div>
+<div class="my-space-sm">
+<div class="font-label-data-lg text-label-data-lg text-primary-container">34.2 <span class="text-sm font-normal text-outline">GB saved</span></div>
+<!-- Explicit Separate Callout Badge for Estimated Additional Savings -->
+<div class="inline-flex items-center gap-1.5 mt-1 px-2 py-0.5 rounded-full bg-primary-container/15 border border-primary-container/30 text-primary font-label-badge text-label-badge">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container animate-pulse"></span>
+<span>Estimated Additional Savings: 11.8 GB</span>
+</div>
+</div>
+<div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full" style="width: 38%;"></div>
+</div>
+</div>
+</section>
+<!-- MIDDLE DUAL-PANEL: Visual Distribution Chart (8 cols) + Analysis Results (4 cols) -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- VISUAL DISTRIBUTION CHART & BREAKDOWN (8 COLS) -->
+<div class="lg:col-span-8 p-space-lg rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col gap-space-lg">
+<div class="flex items-center justify-between flex-wrap gap-space-sm border-b border-outline-variant/20 pb-space-md">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Storage Footprint Distribution</h2>
+<p class="font-body-sm text-body-sm text-outline">Cluster breakdown by game engine asset archetype</p>
+</div>
+<!-- Disk Usage vs File Count Toggle -->
+<div class="flex items-center bg-surface-container-lowest p-0.5 rounded-lg border border-outline-variant/30 text-body-sm">
+<button class="px-space-md py-1 rounded bg-surface-container-high text-on-surface font-label-badge text-label-badge shadow-sm">
+                Disk Usage (GB)
+              </button>
+<button class="px-space-md py-1 rounded text-outline hover:text-on-surface font-label-badge text-label-badge transition-colors">
+                File Count (Qty)
+              </button>
+</div>
+</div>
+<!-- Distribution Visual Gauge Bar -->
+<div class="flex flex-col gap-space-xs">
+<div class="h-6 w-full rounded-md overflow-hidden flex bg-surface-container-lowest p-0.5 border border-outline-variant/20">
+<!-- Game Archives: 42% (Indigo/Cyan) -->
+<div class="h-full bg-tertiary-container rounded-l-sm transition-all hover:brightness-110 cursor-pointer" style="width: 44%;" title="Game Archives: 38.9 GB (44%)"></div>
+<!-- Textures: 26% (Primary Orange) -->
+<div class="h-full bg-primary-container transition-all hover:brightness-110 cursor-pointer" style="width: 26%;" title="Textures: 23.0 GB (26%)"></div>
+<!-- Cutscenes/Videos: 16% (Secondary Neon Green) -->
+<div class="h-full bg-secondary transition-all hover:brightness-110 cursor-pointer" style="width: 16%;" title="Cutscenes/Videos: 14.2 GB (16%)"></div>
+<!-- Audio: 8% (Tertiary) -->
+<div class="h-full bg-tertiary transition-all hover:brightness-110 cursor-pointer" style="width: 8%;" title="Audio: 7.1 GB (8%)"></div>
+<!-- Binaries: 4% (Muted Slate) -->
+<div class="h-full bg-surface-bright transition-all hover:brightness-110 cursor-pointer" style="width: 4%;" title="Binaries: 3.5 GB (4%)"></div>
+<!-- Script/Data: 2% (Warning Light) -->
+<div class="h-full bg-outline rounded-r-sm transition-all hover:brightness-110 cursor-pointer" style="width: 2%;" title="Script/Data: 1.7 GB (2%)"></div>
+</div>
+<div class="flex justify-between text-body-sm text-outline font-label-data-md">
+<span>0 GB</span>
+<span>44.2 GB</span>
+<span>88.4 GB</span>
+</div>
+</div>
+<!-- Interactive Clickable Legend (Filters File List) -->
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-space-sm pt-space-xs">
+<!-- 1. Game Archives -->
+<button class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low border border-outline-variant/20 hover:border-tertiary-container text-left transition-all group">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-sm bg-tertiary-container"></span>
+<span class="font-body-md text-body-md text-on-surface">Game Archives</span>
+</div>
+<span class="font-label-data-md text-label-data-md text-outline group-hover:text-on-surface">38.9 GB</span>
+</button>
+<!-- 2. Textures -->
+<button class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low border border-outline-variant/20 hover:border-primary-container text-left transition-all group">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-sm bg-primary-container"></span>
+<span class="font-body-md text-body-md text-on-surface">Textures</span>
+</div>
+<span class="font-label-data-md text-label-data-md text-outline group-hover:text-on-surface">23.0 GB</span>
+</button>
+<!-- 3. Cutscenes/Videos -->
+<button class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low border border-outline-variant/20 hover:border-secondary text-left transition-all group">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-sm bg-secondary"></span>
+<span class="font-body-md text-body-md text-on-surface">Cutscenes/Videos</span>
+</div>
+<span class="font-label-data-md text-label-data-md text-outline group-hover:text-on-surface">14.2 GB</span>
+</button>
+<!-- 4. Audio -->
+<button class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low border border-outline-variant/20 hover:border-tertiary text-left transition-all group">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-sm bg-tertiary"></span>
+<span class="font-body-md text-body-md text-on-surface">Audio</span>
+</div>
+<span class="font-label-data-md text-label-data-md text-outline group-hover:text-on-surface">7.1 GB</span>
+</button>
+<!-- 5. Binaries -->
+<button class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low border border-outline-variant/20 hover:border-surface-bright text-left transition-all group">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-sm bg-surface-bright"></span>
+<span class="font-body-md text-body-md text-on-surface">Binaries</span>
+</div>
+<span class="font-label-data-md text-label-data-md text-outline group-hover:text-on-surface">3.5 GB</span>
+</button>
+<!-- 6. Script/Data -->
+<button class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-low border border-outline-variant/20 hover:border-outline text-left transition-all group">
+<div class="flex items-center gap-space-xs">
+<span class="w-3 h-3 rounded-sm bg-outline"></span>
+<span class="font-body-md text-body-md text-on-surface">Script/Data</span>
+</div>
+<span class="font-label-data-md text-label-data-md text-outline group-hover:text-on-surface">1.7 GB</span>
+</button>
+</div>
+</div>
+<!-- ANALYSIS RESULTS PANEL (4 COLS) -->
+<div class="lg:col-span-4 p-space-lg rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col justify-between gap-space-md">
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between border-b border-outline-variant/20 pb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary-container">troubleshoot</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Analysis Results</h2>
+</div>
+<span class="font-label-badge text-label-badge text-secondary bg-secondary/10 px-2 py-0.5 rounded">Ready</span>
+</div>
+<!-- Optimization Opportunity 1: Compression -->
+<div class="p-space-md rounded-lg bg-surface-container-low border border-outline-variant/20 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md font-semibold text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-primary-container" style="font-size: 16px;">compress</span>
+                  Compression Candidates
+                </span>
+<span class="font-label-data-md text-label-data-md text-primary">42.1 GB</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline">
+                Eligible for NTFS LZX / CompactOS transparent decompression without latency penalty.
+              </p>
+</div>
+<!-- Optimization Opportunity 2: 4K Videos -->
+<div class="p-space-md rounded-lg bg-surface-container-low border border-outline-variant/20 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md font-semibold text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary" style="font-size: 16px;">hd</span>
+                  4K / High-Res Videos
+                </span>
+<span class="font-label-data-md text-label-data-md text-secondary">14.2 GB</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline">
+                Uncompressed Bink 2 (.bk2) cutscenes can be downscaled or re-quantized.
+              </p>
+</div>
+<!-- Opportunity 3: Unsupported / Skipped -->
+<div class="p-space-md rounded-lg bg-surface-container-low border border-outline-variant/20 flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-body-md text-body-md font-semibold text-on-surface flex items-center gap-1">
+<span class="material-symbols-outlined text-outline" style="font-size: 16px;">lock_clock</span>
+                  Unsupported / Skipped
+                </span>
+<span class="font-label-data-md text-label-data-md text-outline">3.5 GB</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline">
+                Signed executable binaries (Cyberpunk2077.exe) & active savegame containers locked by OS.
+              </p>
+</div>
+</div>
+<div class="text-xs text-outline flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span>Safety verified: No anti-cheat or DRM checksum risk.</span>
+</div>
+</div>
+</section>
+<!-- LARGEST-FILES TABLE WITH BREADCRUMB & SEARCH -->
+<section class="p-space-lg rounded-xl bg-surface-container border border-outline-variant/20 flex flex-col gap-space-md">
+<!-- Table Controls: Breadcrumbs & Search -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md pb-space-sm border-b border-outline-variant/20">
+<!-- Folder Breadcrumb Navigation -->
+<div class="flex items-center gap-1.5 text-body-sm text-outline font-label-data-md overflow-x-auto py-1">
+<span class="text-on-surface hover:underline cursor-pointer flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">folder</span> Cyberpunk 2077
+            </span>
+<span>/</span>
+<span class="text-on-surface hover:underline cursor-pointer">archive</span>
+<span>/</span>
+<span class="text-primary hover:underline cursor-pointer">pc</span>
+<span>/</span>
+<span class="text-on-surface font-semibold">content</span>
+</div>
+<!-- Search Input -->
+<div class="relative w-full sm:w-72">
+<input class="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg pl-8 pr-3 py-1.5 text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary-container" placeholder="Filter files by name or extension..." type="text"/>
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-outline" style="font-size: 16px;">search</span>
+</div>
+</div>
+<!-- Dense Data Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-outline-variant/20 text-body-sm text-outline font-label-badge">
+<th class="py-space-sm px-space-md">Filename</th>
+<th class="py-space-sm px-space-md">File Type</th>
+<th class="py-space-sm px-space-md">Logical Size</th>
+<th class="py-space-sm px-space-md">Disk Usage</th>
+<th class="py-space-sm px-space-md">Compression Ratio</th>
+<th class="py-space-sm px-space-md text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10 text-body-md font-body-md">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-sm px-space-md flex items-center gap-space-sm font-label-data-md">
+<span class="material-symbols-outlined text-tertiary-container" style="font-size: 18px;">folder_zip</span>
+<span class="text-on-surface font-semibold">basegame_4_gamedata.archive</span>
+</td>
+<td class="py-space-sm px-space-md text-outline">REDengine Archive</td>
+<td class="py-space-sm px-space-md font-label-data-md text-on-surface">12.4 GB</td>
+<td class="py-space-sm px-space-md font-label-data-md text-secondary">7.2 GB</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded-full font-label-badge text-label-badge bg-secondary/15 text-secondary border border-secondary/30">
+                    41.9% Saved (LZX)
+                  </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<button class="px-2 py-1 rounded bg-surface-container-high text-outline hover:text-on-surface font-label-badge text-label-badge">
+                    Inspect
+                  </button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-sm px-space-md flex items-center gap-space-sm font-label-data-md">
+<span class="material-symbols-outlined text-primary-container" style="font-size: 18px;">image</span>
+<span class="text-on-surface font-semibold">basegame_3_nightcity_textures.archive</span>
+</td>
+<td class="py-space-sm px-space-md text-outline">DXT Textures</td>
+<td class="py-space-sm px-space-md font-label-data-md text-on-surface">10.8 GB</td>
+<td class="py-space-sm px-space-md font-label-data-md text-primary">6.1 GB</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded-full font-label-badge text-label-badge bg-primary-container/15 text-primary border border-primary-container/30">
+                    43.5% Saved (XPRESS8K)
+                  </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<button class="px-2 py-1 rounded bg-surface-container-high text-outline hover:text-on-surface font-label-badge text-label-badge">
+                    Inspect
+                  </button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-sm px-space-md flex items-center gap-space-sm font-label-data-md">
+<span class="material-symbols-outlined text-secondary" style="font-size: 18px;">movie</span>
+<span class="text-on-surface font-semibold">ep1_cinematics_4k_hdr.bk2</span>
+</td>
+<td class="py-space-sm px-space-md text-outline">Bink 2 Video Stream</td>
+<td class="py-space-sm px-space-md font-label-data-md text-on-surface">8.6 GB</td>
+<td class="py-space-sm px-space-md font-label-data-md text-outline">8.6 GB</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded-full font-label-badge text-label-badge bg-primary-container/20 text-primary-container border border-primary-container/30">
+                    Pending Optimisation
+                  </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<button class="px-2 py-1 rounded bg-primary-container text-on-primary hover:bg-[#ff771a] font-label-badge text-label-badge">
+                    Re-encode
+                  </button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-sm px-space-md flex items-center gap-space-sm font-label-data-md">
+<span class="material-symbols-outlined text-tertiary" style="font-size: 18px;">audiotrack</span>
+<span class="text-on-surface font-semibold">soundbanks_sfx_surround.archive</span>
+</td>
+<td class="py-space-sm px-space-md text-outline">Wwise Audio Bank</td>
+<td class="py-space-sm px-space-md font-label-data-md text-on-surface">4.8 GB</td>
+<td class="py-space-sm px-space-md font-label-data-md text-secondary">3.9 GB</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded-full font-label-badge text-label-badge bg-secondary/15 text-secondary border border-secondary/30">
+                    18.7% Saved (LZX)
+                  </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<button class="px-2 py-1 rounded bg-surface-container-high text-outline hover:text-on-surface font-label-badge text-label-badge">
+                    Inspect
+                  </button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-sm px-space-md flex items-center gap-space-sm font-label-data-md">
+<span class="material-symbols-outlined text-outline" style="font-size: 18px;">lock</span>
+<span class="text-on-surface font-semibold">Cyberpunk2077.exe</span>
+</td>
+<td class="py-space-sm px-space-md text-outline">Executable Binary</td>
+<td class="py-space-sm px-space-md font-label-data-md text-on-surface">68.4 MB</td>
+<td class="py-space-sm px-space-md font-label-data-md text-outline">68.4 MB</td>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded-full font-label-badge text-label-badge bg-surface-container-high text-outline border border-outline-variant/30">
+                    Skipped (Protected)
+                  </span>
+</td>
+<td class="py-space-sm px-space-md text-right">
+<button class="px-2 py-1 rounded bg-surface-container-high text-outline hover:text-on-surface font-label-badge text-label-badge" disabled="">
+                    Locked
+                  </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- DIRECT PRIMARY ACTION BAR (Sticky at bottom of main content) -->
+<section class="sticky bottom-0 z-20 -mx-margin px-margin py-space-md bg-surface-container-lowest/90 backdrop-blur-md border-t border-outline-variant/30 flex items-center justify-between flex-wrap gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined" style="font-size: 22px;">tune</span>
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm text-on-surface">Recommended Action Profile</div>
+<div class="font-body-sm text-body-sm text-outline">Applying balanced safe pipeline will reclaim <span class="text-primary font-bold">11.8 GB</span> with 0% runtime degradation.</div>
+</div>
+</div>
+<div class="flex items-center gap-space-md">
+<!-- Action 1: Configure Compression -->
+<button class="px-space-xl py-2.5 rounded-lg bg-surface-container-high border border-outline-variant/30 text-on-surface hover:bg-surface-container-highest font-label-data-md text-label-data-md flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-outline">tune</span>
+<span>Configure Compression</span>
+</button>
+<!-- Action 2: Optimise Videos -->
+<button class="px-space-xl py-2.5 rounded-lg bg-primary-container text-on-primary hover:bg-[#ff771a] font-label-data-md text-label-data-md flex items-center gap-space-xs shadow-md transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">movie_filter</span>
+<span>Optimise Videos</span>
+</button>
+</div>
+</section>
+</main>
+</div>
+</body></html>

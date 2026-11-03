@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Compression Setup - Baldur's Gate 3 | ApexDrive Optimiser</title>
+<!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;1,400&amp;family=Space+Grotesk:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary": "#003546",
+            "on-tertiary-container": "#003242",
+            "on-primary-fixed": "#360f00",
+            "primary": "#ffb597",
+            "primary-container": "#ff6200",
+            "background": "#111316",
+            "on-background": "#e2e2e6",
+            "tertiary-container": "#00a1ce",
+            "on-primary-container": "#541b00",
+            "surface-container-low": "#1a1c1f",
+            "outline": "#aa8a7d",
+            "on-secondary-fixed-variant": "#005226",
+            "secondary-container": "#05e777",
+            "surface-container-high": "#282a2d",
+            "surface-tint": "#ffb597",
+            "primary-fixed-dim": "#ffb597",
+            "on-error": "#690005",
+            "surface-dim": "#111316",
+            "tertiary": "#68d3ff",
+            "surface-bright": "#37393d",
+            "on-tertiary-fixed": "#001f2a",
+            "primary-fixed": "#ffdbcd",
+            "surface-container-lowest": "#0c0e11",
+            "on-error-container": "#ffdad6",
+            "surface-container-highest": "#333538",
+            "inverse-on-surface": "#2f3034",
+            "error-container": "#93000a",
+            "on-secondary": "#003918",
+            "error": "#ffb4ab",
+            "inverse-primary": "#a53d00",
+            "surface": "#111316",
+            "surface-variant": "#333538",
+            "on-secondary-fixed": "#00210b",
+            "secondary": "#7dffa2",
+            "surface-container": "#1e2023",
+            "inverse-surface": "#e2e2e6",
+            "on-primary-fixed-variant": "#7e2c00",
+            "on-tertiary-fixed-variant": "#004d64",
+            "tertiary-fixed": "#bee9ff",
+            "on-surface-variant": "#e3bfb1",
+            "outline-variant": "#5a4137",
+            "secondary-fixed-dim": "#00e475",
+            "on-surface": "#e2e2e6",
+            "on-primary": "#591d00",
+            "tertiary-fixed-dim": "#68d3ff",
+            "on-secondary-container": "#00622e",
+            "secondary-fixed": "#62ff96"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "gutter": "1rem",
+            "margin": "1.25rem",
+            "space-lg": "1rem",
+            "space-sm": "0.5rem",
+            "space-xl": "1.5rem",
+            "space-md": "0.75rem"
+          },
+          "fontFamily": {
+            "headline-md": ["Space Grotesk"],
+            "body-md": ["Inter"],
+            "label-data-lg": ["JetBrains Mono"],
+            "label-badge": ["JetBrains Mono"],
+            "body-sm": ["Inter"],
+            "label-data-md": ["JetBrains Mono"],
+            "label-caption": ["Inter"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-xl": ["Space Grotesk"],
+            "headline-sm": ["Space Grotesk"],
+            "body-lg": ["Inter"]
+          },
+          "fontSize": {
+            "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "label-data-lg": ["24px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "label-badge": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-data-md": ["14px", { "lineHeight": "18px", "fontWeight": "600" }],
+            "label-caption": ["11px", { "lineHeight": "14px", "fontWeight": "500" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "fontWeight": "600" }],
+            "headline-xl": ["36px", { "lineHeight": "44px", "fontWeight": "700" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    /* Custom scrollbar for dense telemetry cards */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #111316;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #333538;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #5a4137;
+    }
+    .custom-glow-orange {
+      box-shadow: 0 0 20px rgba(255, 98, 0, 0.25);
+    }
+    .custom-glow-green {
+      box-shadow: 0 0 16px rgba(0, 230, 118, 0.18);
+    }
+    .hairline-border {
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .hairline-inner-top {
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col font-body-md select-none overflow-x-hidden antialiased">
+<!-- ================= TOP NAV BAR (Shared Component) ================= -->
+<header class="bg-surface-container-lowest text-on-surface border-b border-outline-variant/30 flex justify-between items-center h-10 px-gutter w-full select-none fixed top-0 left-0 right-0 z-50">
+<!-- Left: Brand Logo & Global System Status -->
+<div class="flex items-center gap-space-lg">
+<div class="flex items-center gap-space-xs font-headline-sm text-headline-sm font-bold text-on-surface tracking-tight">
+<span class="material-symbols-outlined text-primary-container" data-icon="memory">memory</span>
+<span>ApexDrive Optimiser</span>
+</div>
+<!-- Quick Search Bar (search_bar: on_left) -->
+<div class="relative flex items-center ml-space-md">
+<span class="material-symbols-outlined absolute left-2 text-outline text-body-sm" data-icon="search">search</span>
+<input class="bg-surface-container-low text-on-surface text-body-sm pl-7 pr-3 py-0.5 rounded-lg border border-surface-container-highest hairline-inner-top focus:border-primary-container focus:outline-none w-56 placeholder:text-outline/70" placeholder="Search target paths, processes..." type="text"/>
+</div>
+</div>
+<!-- Right: Trailing Actions & Native Control Icons -->
+<div class="flex items-center gap-space-md">
+<button class="bg-surface-container-high/50 hover:bg-surface-container-high text-outline hover:text-on-surface px-space-md py-0.5 rounded text-body-sm active:scale-[0.98] transition-all">
+        Pause Queue
+      </button>
+<button class="bg-primary-container text-on-primary-container hover:bg-primary-fixed-dim font-headline-sm text-body-sm font-semibold px-space-md py-0.5 rounded active:scale-[0.98] transition-all flex items-center gap-space-xs shadow-sm">
+<span class="material-symbols-outlined text-body-md" data-icon="bolt">bolt</span>
+        Scan Now
+      </button>
+<!-- Trailing window and status icons -->
+<div class="flex items-center gap-space-xs ml-space-sm pl-space-sm border-l border-outline-variant/30 text-outline">
+<button class="p-1 hover:text-on-surface hover:bg-surface-container-high/50 rounded transition-colors" title="Notifications">
+<span class="material-symbols-outlined text-body-md" data-icon="notifications">notifications</span>
+</button>
+<button class="p-1 hover:text-on-surface hover:bg-surface-container-high/50 rounded transition-colors" title="System Administrator Profile">
+<span class="material-symbols-outlined text-body-md" data-icon="account_circle">account_circle</span>
+</button>
+<span class="h-3 w-px bg-outline-variant/30 mx-1"></span>
+<button class="p-1 hover:text-on-surface hover:bg-surface-container-high/50 rounded transition-colors" title="Minimize">
+<span class="material-symbols-outlined text-body-md" data-icon="minimize">minimize</span>
+</button>
+<button class="p-1 hover:text-on-surface hover:bg-surface-container-high/50 rounded transition-colors" title="Maximize">
+<span class="material-symbols-outlined text-body-md" data-icon="check_box_outline_blank">check_box_outline_blank</span>
+</button>
+<button class="p-1 hover:text-error hover:bg-error-container/30 rounded transition-colors" title="Close">
+<span class="material-symbols-outlined text-body-md" data-icon="close">close</span>
+</button>
+</div>
+</div>
+</header>
+<!-- ================= SHELL LAYOUT: SIDEBAR + MAIN WORKSPACE ================= -->
+<div class="flex pt-10 min-h-screen">
+<!-- ================= SIDE NAV BAR (Shared Component) ================= -->
+<aside class="fixed top-10 left-0 bottom-0 w-64 flex flex-col justify-between p-gutter z-40 bg-surface-container-low border-r border-outline-variant/30 select-none">
+<!-- Top Section: NVMe Status & Primary Links -->
+<div class="flex flex-col gap-space-md">
+<!-- Drive Telemetry Capsule -->
+<div class="bg-surface-container p-space-md rounded-xl hairline-border">
+<div class="flex items-center gap-space-md">
+<div class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary-container">
+<span class="material-symbols-outlined text-headline-sm" data-icon="hard_drive">hard_drive</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-body-md font-semibold text-on-surface leading-tight">NVMe Health 98%</span>
+<span class="font-label-badge text-label-badge text-secondary font-semibold">Drive C: 248 GB Free</span>
+</div>
+</div>
+<!-- Capacity Gauge Bar -->
+<div class="mt-space-sm w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary-container h-full rounded-full" style="width: 76%"></div>
+</div>
+<button class="mt-space-sm w-full py-1 text-center font-label-badge text-label-badge text-primary-container hover:text-primary hover:bg-surface-container-high/60 rounded transition-colors">
+            Run Trim &amp; Clean
+          </button>
+</div>
+<!-- Navigation Tab Group -->
+<!-- Active Tab: Compression Setup (Matching destination) -->
+<nav class="flex flex-col gap-1 mt-space-xs">
+<!-- Library -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-headline-sm" data-icon="sports_esports">sports_esports</span>
+<span class="font-body-md text-body-md font-medium">Library</span>
+</a>
+<!-- Game Analyser -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-headline-sm" data-icon="analytics">analytics</span>
+<span class="font-body-md text-body-md font-medium">Game Analyser</span>
+</a>
+<!-- Compression Setup (ACTIVE) -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg bg-surface-container-high text-primary-container font-semibold border-l-2 border-primary-container transition-all" href="#">
+<span class="material-symbols-outlined text-headline-sm" data-icon="folder_zip">folder_zip</span>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Compression Setup</span>
+</a>
+<!-- Video Optimisation -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-headline-sm" data-icon="movie_filter">movie_filter</span>
+<span class="font-body-md text-body-md font-medium">Video Optimisation</span>
+</a>
+<!-- Jobs & Queue -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-headline-sm" data-icon="pending_actions">pending_actions</span>
+<span class="font-body-md text-body-md font-medium">Jobs &amp; Queue</span>
+<span class="ml-auto bg-surface-container-highest text-tertiary font-label-badge text-[10px] px-1.5 py-0.5 rounded">2 Idle</span>
+</a>
+<!-- Settings & Storage -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-all duration-150" href="#">
+<span class="material-symbols-outlined text-headline-sm" data-icon="settings_system_daydream">settings_system_daydream</span>
+<span class="font-body-md text-body-md font-medium">Settings &amp; Storage</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Footer Tabs in SideNavBar -->
+<div class="flex flex-col gap-1 border-t border-outline-variant/30 pt-space-sm">
+<a class="flex items-center gap-space-md px-space-md py-1.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-colors" href="#">
+<span class="material-symbols-outlined text-body-md" data-icon="terminal">terminal</span>
+<span class="font-body-sm text-body-sm">Support Logs</span>
+</a>
+<a class="flex items-center gap-space-md px-space-md py-1.5 rounded-lg text-outline hover:text-error hover:bg-error-container/20 transition-colors" href="#">
+<span class="material-symbols-outlined text-body-md" data-icon="power_settings_new">power_settings_new</span>
+<span class="font-body-sm text-body-sm">Exit Session</span>
+</a>
+</div>
+</aside>
+<!-- ================= MAIN OPERATIONAL WORKSPACE (Bento Grid) ================= -->
+<main class="ml-64 flex-1 flex flex-col p-margin pb-24 gap-space-lg bg-background">
+<!-- SUB-NAVIGATION / FOCUSED WORKFLOW BREADCRUMB -->
+<section class="flex flex-wrap items-center justify-between gap-space-md bg-surface-container-low px-space-lg py-space-md rounded-xl hairline-border">
+<div class="flex items-center gap-space-md">
+<a class="flex items-center gap-1 text-outline hover:text-on-surface font-body-sm transition-colors" href="#" title="Return to Game Analyser">
+<span class="material-symbols-outlined text-body-md" data-icon="arrow_back">arrow_back</span>
+<span>Game Analyser</span>
+</a>
+<span class="text-outline-variant">/</span>
+<div class="flex items-center gap-space-sm">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse"></span>
+<h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">
+              Compression Setup — Baldur's Gate 3
+            </h1>
+</div>
+<span class="bg-surface-container-high text-tertiary font-label-badge text-label-badge px-2 py-0.5 rounded border border-tertiary-container/30">
+            Larian Studios • DirectStorage Hybrid
+          </span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-body-sm text-outline">Engine Profile:</span>
+<span class="font-label-badge text-label-badge text-secondary bg-secondary-container/10 px-2 py-0.5 rounded border border-secondary-container/30">
+            DIVINITY 4.0 (NTFS CompactOS Ready)
+          </span>
+</div>
+</section>
+<!-- 12-COLUMN ASYMMETRIC BENTO GRID -->
+<div class="grid grid-cols-12 gap-space-lg">
+<!-- LEFT 8 COLUMNS: Target Directory Tree & Rules Breakdown -->
+<div class="col-span-12 xl:col-span-8 flex flex-col gap-space-lg">
+<!-- Selected Game Summary & Directory Tree Card -->
+<div class="bg-surface-container p-space-lg rounded-xl hairline-border flex flex-col gap-space-md">
+<!-- Header bar inside card -->
+<div class="flex items-center justify-between border-b border-surface-container-highest/60 pb-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary" data-icon="account_tree">account_tree</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Target Directory Structure &amp; Payload Filters</h2>
+</div>
+<div class="flex items-center gap-space-xs text-body-sm text-outline">
+<span class="font-label-data-md text-body-sm text-on-surface">C:\Program Files (x86)\Steam\steamapps\common\Baldurs Gate 3</span>
+</div>
+</div>
+<!-- Directory Tree Component with Interactive Checkboxes & Badges -->
+<div class="bg-surface-container-low rounded-lg p-space-md border border-surface-container-highest/50 flex flex-col gap-2 max-h-72 overflow-y-auto font-body-sm">
+<!-- Root Folder Node -->
+<div class="flex items-center justify-between py-1 px-2 rounded bg-surface-container-high/40">
+<div class="flex items-center gap-2">
+<input checked="" class="rounded border-outline bg-surface-container-highest text-primary-container focus:ring-0 w-4 h-4" type="checkbox"/>
+<span class="material-symbols-outlined text-primary text-body-md" data-icon="folder_open">folder_open</span>
+<span class="font-medium text-on-surface">/Baldurs Gate 3 (Root Payload)</span>
+</div>
+<span class="font-label-data-md text-label-badge text-outline">122.4 GB Total</span>
+</div>
+<!-- Child Node: Data / Textures & Soundbanks (Included) -->
+<div class="flex items-center justify-between py-1 px-2 ml-6 rounded hover:bg-surface-container-high/30 transition-colors">
+<div class="flex items-center gap-2">
+<input checked="" class="rounded border-outline bg-surface-container-highest text-primary-container focus:ring-0 w-4 h-4" type="checkbox"/>
+<span class="material-symbols-outlined text-secondary-container text-body-md" data-icon="folder">folder</span>
+<span class="text-on-surface">/Data/Textures_Raw.pak</span>
+<span class="font-label-badge text-[10px] bg-secondary/10 text-secondary px-1.5 py-0.2 rounded">Optimal Incompressible Ratio 1.34x</span>
+</div>
+<span class="font-label-data-md text-label-badge text-on-surface">54.8 GB</span>
+</div>
+<!-- Child Node: Audio Soundbanks (Included) -->
+<div class="flex items-center justify-between py-1 px-2 ml-6 rounded hover:bg-surface-container-high/30 transition-colors">
+<div class="flex items-center gap-2">
+<input checked="" class="rounded border-outline bg-surface-container-highest text-primary-container focus:ring-0 w-4 h-4" type="checkbox"/>
+<span class="material-symbols-outlined text-secondary-container text-body-md" data-icon="folder">folder</span>
+<span class="text-on-surface">/Data/SoundBanks_Master.pak</span>
+<span class="font-label-badge text-[10px] bg-secondary/10 text-secondary px-1.5 py-0.2 rounded">Raw Uncompressed PCM</span>
+</div>
+<span class="font-label-data-md text-label-badge text-on-surface">22.1 GB</span>
+</div>
+<!-- Child Node: Meshes & Level Geometry (Included) -->
+<div class="flex items-center justify-between py-1 px-2 ml-6 rounded hover:bg-surface-container-high/30 transition-colors">
+<div class="flex items-center gap-2">
+<input checked="" class="rounded border-outline bg-surface-container-highest text-primary-container focus:ring-0 w-4 h-4" type="checkbox"/>
+<span class="material-symbols-outlined text-secondary-container text-body-md" data-icon="folder">folder</span>
+<span class="text-on-surface">/Data/Meshes_LODs.pak</span>
+<span class="font-label-badge text-[10px] bg-secondary/10 text-secondary px-1.5 py-0.2 rounded">High Redundancy</span>
+</div>
+<span class="font-label-data-md text-label-badge text-on-surface">18.5 GB</span>
+</div>
+<!-- Child Node: Binaries (Exclusion Alert) -->
+<div class="flex items-center justify-between py-1 px-2 ml-6 rounded bg-surface-container-highest/20 text-outline">
+<div class="flex items-center gap-2">
+<input class="rounded border-outline-variant bg-surface-container-lowest text-outline w-4 h-4 cursor-not-allowed opacity-40" disabled="" type="checkbox"/>
+<span class="material-symbols-outlined text-error text-body-md" data-icon="lock">lock</span>
+<span class="line-through">/bin/bg3.exe &amp; /bin/bg3_dx11.exe</span>
+<span class="font-label-badge text-[10px] bg-error-container/30 text-error px-1.5 py-0.2 rounded">Protected Executables</span>
+</div>
+<span class="font-label-data-md text-label-badge text-outline">140 MB [Skipped]</span>
+</div>
+<!-- Child Node: Streaming cache (Exclusion Alert) -->
+<div class="flex items-center justify-between py-1 px-2 ml-6 rounded bg-surface-container-highest/20 text-outline">
+<div class="flex items-center gap-2">
+<input class="rounded border-outline-variant bg-surface-container-lowest text-outline w-4 h-4 cursor-not-allowed opacity-40" disabled="" type="checkbox"/>
+<span class="material-symbols-outlined text-outline text-body-md" data-icon="block">block</span>
+<span class="line-through">/bin/crashdump_handler.dll</span>
+<span class="font-label-badge text-[10px] bg-surface-container-highest text-outline px-1.5 py-0.2 rounded">Dynamic Stream IO</span>
+</div>
+<span class="font-label-data-md text-label-badge text-outline">48 MB [Skipped]</span>
+</div>
+</div>
+<!-- Inclusions vs Exclusions Telemetry Split -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md pt-space-xs">
+<!-- Included Container -->
+<div class="p-space-md rounded-lg bg-surface-container-low border border-secondary-container/20 flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5 text-secondary">
+<span class="material-symbols-outlined text-body-md" data-icon="check_circle">check_circle</span>
+<span class="font-headline-sm text-body-md font-semibold">Included In Compression Job</span>
+</div>
+<span class="font-label-data-md text-label-badge text-secondary font-bold">95.4 GB</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline">
+                  High-benefit assets: Raw textures (.dds, .pak), uncompressed audio buffers (.wav, .bnk), level static meshes, and duplicate localization packs.
+                </p>
+<div class="flex flex-wrap gap-1 mt-1">
+<span class="font-label-badge text-[10px] bg-surface-container-high px-2 py-0.5 rounded text-on-surface">Textures (54.8 GB)</span>
+<span class="font-label-badge text-[10px] bg-surface-container-high px-2 py-0.5 rounded text-on-surface">Audio Raw (22.1 GB)</span>
+<span class="font-label-badge text-[10px] bg-surface-container-high px-2 py-0.5 rounded text-on-surface">Meshes (18.5 GB)</span>
+</div>
+</div>
+<!-- Excluded Container -->
+<div class="p-space-md rounded-lg bg-surface-container-low border border-outline-variant/30 flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5 text-outline">
+<span class="material-symbols-outlined text-body-md" data-icon="remove_circle_outline">remove_circle_outline</span>
+<span class="font-headline-sm text-body-md font-semibold text-on-surface">Auto-Excluded Items</span>
+</div>
+<span class="font-label-data-md text-label-badge text-outline font-bold">27.0 GB</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline">
+                  Excluded to guarantee seamless runtime: Signed binaries (.exe, .dll), anti-cheat hooks, active save states, and streaming direct-memory assets.
+                </p>
+<div class="flex flex-wrap gap-1 mt-1">
+<span class="font-label-badge text-[10px] bg-surface-container-high/60 px-2 py-0.5 rounded text-outline">DirectX Binaries (.exe)</span>
+<span class="font-label-badge text-[10px] bg-surface-container-high/60 px-2 py-0.5 rounded text-outline">Crash Handlers</span>
+<span class="font-label-badge text-[10px] bg-surface-container-high/60 px-2 py-0.5 rounded text-outline">Protected PDBs</span>
+</div>
+</div>
+</div>
+</div>
+<!-- COMPRESSION ALGORITHM SELECTOR -->
+<div class="bg-surface-container p-space-lg rounded-xl hairline-border flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary-container" data-icon="tune">tune</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Compression Algorithm Selector</h2>
+</div>
+<span class="font-label-badge text-label-badge text-primary-container bg-primary-container/10 px-2.5 py-0.5 rounded border border-primary-container/30">
+                CompactOS Kernel Driver Direct
+              </span>
+</div>
+<!-- Algorithm Selection Bento Cards -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-space-sm">
+<!-- LZX: Selected & Recommended -->
+<div class="relative bg-surface-container-high p-space-md rounded-lg border-2 border-primary-container custom-glow-orange flex flex-col justify-between cursor-pointer transition-all">
+<div class="absolute -top-2.5 right-3 bg-primary-container text-on-primary-container font-label-badge text-[9px] px-1.5 py-0.2 rounded font-bold uppercase tracking-wider">
+                  Recommended SSD
+                </div>
+<div>
+<div class="flex items-center justify-between mb-1">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">LZX</span>
+<span class="material-symbols-outlined text-primary-container text-headline-sm" data-icon="radio_button_checked">radio_button_checked</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-2">CompactOS maximum density with hardware-accelerated decompression.</p>
+</div>
+<div class="space-y-1 pt-2 border-t border-surface-container-highest">
+<div class="flex justify-between font-label-badge text-[10px]">
+<span class="text-outline">Ratio:</span>
+<span class="text-secondary font-bold">~25-32% (Ultra)</span>
+</div>
+<div class="flex justify-between font-label-badge text-[10px]">
+<span class="text-outline">Read Impact:</span>
+<span class="text-secondary font-bold">0.0 ms (Transparent)</span>
+</div>
+</div>
+</div>
+<!-- XPRESS16K -->
+<div class="bg-surface-container-low hover:bg-surface-container-high/60 p-space-md rounded-lg hairline-border flex flex-col justify-between cursor-pointer transition-all">
+<div>
+<div class="flex items-center justify-between mb-1">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">XPRESS16K</span>
+<span class="material-symbols-outlined text-outline text-headline-sm" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline mb-2">High compression with moderate CPU encoding overhead during background passes.</p>
+</div>
+<div class="space-y-1 pt-2 border-t border-surface-container-highest/40">
+<div class="flex justify-between font-label-badge text-[10px]">
+<span class="text-outline">Ratio:</span>
+<span class="text-on-surface font-semibold">~18-22%</span>
+</div>
+<div class="flex justify-between font-label-badge text-[10px]">
+<span class="text-outline">Read Impact:</span>
+<span class="text-secondary font-semibold">0.0 ms</span>
+</div>
+</div>
+</div>
+<!-- XPRESS8K -->
+<div class="bg-surface-container-low hover:bg-surface-container-high/60 p-space-md rounded-lg hairline-border flex flex-col justify-between cursor-pointer transition-all">
+<div>
+<div class="flex items-center justify-between mb-1">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">XPRESS8K</span>
+<span class="material-symbols-outlined text-outline text-headline-sm" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline mb-2">Balanced block compression. Optimized for older PCIe Gen3 NVMe controllers.</p>
+</div>
+<div class="space-y-1 pt-2 border-t border-surface-container-highest/40">
+<div class="flex justify-between font-label-badge text-[10px]">
+<span class="text-outline">Ratio:</span>
+<span class="text-on-surface font-semibold">~14-17%</span>
+</div>
+<div class="flex justify-between font-label-badge text-[10px]">
+<span class="text-outline">Read Impact:</span>
+<span class="text-secondary font-semibold">0.0 ms</span>
+</div>
+</div>
+</div>
+<!-- XPRESS4K -->
+<div class="bg-surface-container-low hover:bg-surface-container-high/60 p-space-md rounded-lg hairline-border flex flex-col justify-between cursor-pointer transition-all">
+<div>
+<div class="flex items-center justify-between mb-1">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">XPRESS4K</span>
+<span class="material-symbols-outlined text-outline text-headline-sm" data-icon="radio_button_unchecked">radio_button_unchecked</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline mb-2">Lowest CPU footprint during writes. Rapid compress speed, lower compression ratio.</p>
+</div>
+<div class="space-y-1 pt-2 border-t border-surface-container-highest/40">
+<div class="flex justify-between font-label-badge text-[10px]">
+<span class="text-outline">Ratio:</span>
+<span class="text-on-surface font-semibold">~10-12%</span>
+</div>
+<div class="flex justify-between font-label-badge text-[10px]">
+<span class="text-outline">Read Impact:</span>
+<span class="text-secondary font-semibold">0.0 ms</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Custom / User Defined Algorithm Extensibility slot -->
+<div class="flex items-center justify-between p-space-sm bg-surface-container-low rounded-lg border border-dashed border-outline-variant/50 text-body-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-outline" data-icon="extension">extension</span>
+<span class="text-outline font-medium">Custom User Plugin Pipeline:</span>
+<span class="text-on-surface font-label-badge text-[11px]">DirectStorage GPU-Decompress Prototype (DirectStorage v1.2 DLL Hook)</span>
+</div>
+<button class="text-primary hover:text-primary-container font-label-badge text-label-badge transition-colors">
+                Configure Custom Engine →
+              </button>
+</div>
+</div>
+<!-- IMPORTANT CANCELLATION NOTICE (Safe-Halt Architecture Box) -->
+<div class="p-space-md rounded-xl bg-surface-container border-l-4 border-primary-container hairline-border flex items-start gap-space-md">
+<span class="material-symbols-outlined text-primary-container text-headline-md mt-0.5" data-icon="info">info</span>
+<div class="flex flex-col gap-0.5">
+<span class="font-headline-sm text-body-md font-semibold text-on-surface">Non-Destructive Safe-Halt Architecture Notice</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                Stopping a job safe-halts immediately and leaves already-completed files compressed; decompression is a separate reversible action. Files will never become corrupted or locked if power is cut or an emergency cancellation is triggered.
+              </p>
+</div>
+</div>
+</div>
+<!-- RIGHT 4 COLUMNS: Telemetry Metrics & Preflight Validation -->
+<div class="col-span-12 xl:col-span-4 flex flex-col gap-space-lg">
+<!-- Metrics & Storage Visualizer Card -->
+<div class="bg-surface-container p-space-lg rounded-xl hairline-border flex flex-col gap-space-md">
+<div class="flex items-center justify-between border-b border-surface-container-highest/60 pb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary" data-icon="pie_chart">pie_chart</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Storage Delta Estimate</h3>
+</div>
+<span class="font-label-badge text-label-badge text-secondary bg-secondary/10 px-2 py-0.5 rounded">NTFS Transparent</span>
+</div>
+<!-- Capacity Comparison Bars -->
+<div class="flex flex-col gap-space-md py-space-xs">
+<!-- Current Disk Usage -->
+<div>
+<div class="flex justify-between items-baseline mb-1">
+<span class="font-body-sm text-body-sm text-outline">Current Disk Footprint</span>
+<span class="font-label-data-lg text-label-data-lg text-on-surface">122.4 <span class="text-body-sm font-normal text-outline">GB</span></span>
+</div>
+<div class="w-full bg-surface-container-highest h-3 rounded-full overflow-hidden p-0.5">
+<div class="bg-outline h-full rounded-full" style="width: 100%"></div>
+</div>
+</div>
+<!-- Estimated Post-Compression Usage -->
+<div>
+<div class="flex justify-between items-baseline mb-1">
+<span class="font-body-sm text-body-sm text-primary">Target Size (Post-Compression)</span>
+<span class="font-label-data-lg text-label-data-lg text-secondary">91.2 <span class="text-body-sm font-normal text-outline">GB</span></span>
+</div>
+<div class="w-full bg-surface-container-highest h-3 rounded-full overflow-hidden p-0.5 flex gap-1">
+<div class="bg-secondary-container h-full rounded-full" style="width: 74.5%"></div>
+<div class="bg-primary-container/40 h-full rounded-full border border-dashed border-primary-container" style="width: 25.5%" title="Reclaimed Area"></div>
+</div>
+</div>
+</div>
+<!-- Savings Highlight Callout -->
+<div class="p-space-md rounded-lg bg-surface-container-low border border-secondary-container/30 flex items-center justify-between custom-glow-green">
+<div>
+<span class="font-label-badge text-label-badge text-outline uppercase block">Estimated Disk Savings</span>
+<span class="font-label-data-lg text-label-data-lg text-secondary font-bold">31.2 GB</span>
+</div>
+<div class="text-right">
+<span class="font-label-badge text-label-badge text-outline uppercase block">Footprint Reduction</span>
+<span class="font-headline-md text-headline-md text-secondary font-bold">~25.5%</span>
+</div>
+</div>
+<div class="text-body-sm text-outline flex items-center gap-1.5 pt-1">
+<span class="material-symbols-outlined text-body-md text-tertiary" data-icon="speed">speed</span>
+<span>Game loads identical or faster due to reduced NVMe I/O read bytes.</span>
+</div>
+</div>
+<!-- Preflight Validation Checklist Card -->
+<div class="bg-surface-container p-space-lg rounded-xl hairline-border flex flex-col gap-space-md">
+<div class="flex items-center justify-between border-b border-surface-container-highest/60 pb-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary-container" data-icon="fact_check">fact_check</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Preflight Validation Checklist</h3>
+</div>
+<span class="font-label-badge text-[11px] text-secondary font-bold">ALL 4 PASS</span>
+</div>
+<div class="flex flex-col gap-space-sm">
+<!-- Check 1: Filesystem -->
+<div class="p-space-sm rounded-lg bg-surface-container-low border border-surface-container-highest/60 flex items-start gap-space-md">
+<div class="mt-0.5 text-secondary">
+<span class="material-symbols-outlined text-body-lg" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center">
+<span class="font-headline-sm text-body-md font-semibold text-on-surface">NTFS / ReFS Support</span>
+<span class="font-label-badge text-[10px] text-secondary bg-secondary/10 px-1.5 py-0.2 rounded font-bold">Passed</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Partition volume formatted with standard 4096-byte clusters.</p>
+</div>
+</div>
+<!-- Check 2: Permissions -->
+<div class="p-space-sm rounded-lg bg-surface-container-low border border-surface-container-highest/60 flex items-start gap-space-md">
+<div class="mt-0.5 text-secondary">
+<span class="material-symbols-outlined text-body-lg" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center">
+<span class="font-headline-sm text-body-md font-semibold text-on-surface">Administrator Write Token</span>
+<span class="font-label-badge text-[10px] text-secondary bg-secondary/10 px-1.5 py-0.2 rounded font-bold">Passed</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">ApexDrive runtime elevated with SeSecurityPrivilege tokens.</p>
+</div>
+</div>
+<!-- Check 3: Scratch Space -->
+<div class="p-space-sm rounded-lg bg-surface-container-low border border-surface-container-highest/60 flex items-start gap-space-md">
+<div class="mt-0.5 text-secondary">
+<span class="material-symbols-outlined text-body-lg" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center">
+<span class="font-headline-sm text-body-md font-semibold text-on-surface">Drive Scratch Space</span>
+<span class="font-label-badge text-[10px] text-secondary bg-secondary/10 px-1.5 py-0.2 rounded font-bold">48 GB Free</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">Exceeds minimum 12 GB temporary buffer threshold for in-place swaps.</p>
+</div>
+</div>
+<!-- Check 4: Game Running Check -->
+<div class="p-space-sm rounded-lg bg-surface-container-low border border-surface-container-highest/60 flex items-start gap-space-md">
+<div class="mt-0.5 text-secondary">
+<span class="material-symbols-outlined text-body-lg" data-icon="check_circle">check_circle</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center">
+<span class="font-headline-sm text-body-md font-semibold text-on-surface">Process Lock State</span>
+<span class="font-label-badge text-[10px] text-secondary bg-secondary/10 px-1.5 py-0.2 rounded font-bold">Verified Closed</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline mt-0.5">No active PID holding write handles on game directory files.</p>
+</div>
+</div>
+</div>
+<!-- Hardware Telemetry snapshot -->
+<div class="bg-surface-container-lowest p-space-sm rounded-lg border border-surface-container-highest/40 flex justify-between items-center font-label-badge text-body-sm">
+<span class="text-outline">Assigned CPU Threads:</span>
+<span class="text-tertiary font-bold">12 Cores / 24 Threads (Ryzen 9)</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- ================= BOTTOM ACTION FOOTER (Sticky Global Bar) ================= -->
+<footer class="fixed bottom-0 left-64 right-0 bg-surface-container-low/95 backdrop-blur-md border-t border-outline-variant/30 px-margin py-3 z-40 flex items-center justify-between">
+<!-- Left Navigation Back Button -->
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-body-md font-medium px-space-lg py-2 rounded-lg hairline-border active:scale-[0.98] transition-all flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-body-md" data-icon="arrow_back">arrow_back</span>
+<span>Back to Analyser</span>
+</button>
+<!-- Center/Right Action Cluster -->
+<div class="flex items-center gap-space-md">
+<!-- Reversible Utility Button -->
+<button class="bg-surface-container-high hover:bg-surface-container-highest text-outline hover:text-on-surface font-body-md px-space-lg py-2 rounded-lg hairline-border active:scale-[0.98] transition-all flex items-center gap-space-xs" title="Open rollback manager for previously compressed archives">
+<span class="material-symbols-outlined text-body-md" data-icon="unarchive">unarchive</span>
+<span>Access Decompress Utility</span>
+</button>
+<!-- Primary Action CTA -->
+<button class="bg-primary-container hover:bg-primary-fixed-dim text-on-primary-container font-headline-sm text-headline-sm font-semibold px-space-xl py-2 rounded-lg custom-glow-orange active:scale-[0.98] transition-all flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-headline-sm" data-icon="compress">compress</span>
+<span>Start Compression</span>
+</button>
+</div>
+</footer>
+</body></html>

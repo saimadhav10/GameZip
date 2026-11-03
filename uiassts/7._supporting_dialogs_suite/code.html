@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ApexDrive Optimiser - System Supporting Dialogs</title>
+<!-- Google Fonts & Material Symbols -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary": "#003546",
+            "on-tertiary-container": "#003242",
+            "on-primary-fixed": "#360f00",
+            "primary": "#ffb597",
+            "primary-container": "#ff6200",
+            "background": "#111316",
+            "on-background": "#e2e2e6",
+            "tertiary-container": "#00a1ce",
+            "on-primary-container": "#541b00",
+            "surface-container-low": "#1a1c1f",
+            "outline": "#aa8a7d",
+            "on-secondary-fixed-variant": "#005226",
+            "surface-container-high": "#282a2d",
+            "surface-tint": "#ffb597",
+            "primary-fixed-dim": "#ffb597",
+            "on-error": "#690005",
+            "secondary-container": "#05e777",
+            "surface-dim": "#111316",
+            "tertiary": "#68d3ff",
+            "surface-bright": "#37393d",
+            "on-tertiary-fixed": "#001f2a",
+            "primary-fixed": "#ffdbcd",
+            "surface-container-lowest": "#0c0e11",
+            "on-error-container": "#ffdad6",
+            "surface-container-highest": "#333538",
+            "inverse-on-surface": "#2f3034",
+            "error-container": "#93000a",
+            "on-secondary": "#003918",
+            "error": "#ffb4ab",
+            "inverse-primary": "#a53d00",
+            "surface": "#111316",
+            "surface-variant": "#333538",
+            "on-secondary-fixed": "#00210b",
+            "secondary": "#7dffa2",
+            "surface-container": "#1e2023",
+            "inverse-surface": "#e2e2e6",
+            "on-primary-fixed-variant": "#7e2c00",
+            "on-tertiary-fixed-variant": "#004d64",
+            "tertiary-fixed": "#bee9ff",
+            "on-surface-variant": "#e3bfb1",
+            "outline-variant": "#5a4137",
+            "secondary-fixed-dim": "#00e475",
+            "on-surface": "#e2e2e6",
+            "on-primary": "#591d00",
+            "tertiary-fixed-dim": "#68d3ff",
+            "on-secondary-container": "#00622e",
+            "secondary-fixed": "#62ff96"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "gutter": "1rem",
+            "margin": "1.25rem",
+            "space-lg": "1rem",
+            "space-sm": "0.5rem",
+            "space-xl": "1.5rem",
+            "space-md": "0.75rem"
+          },
+          "fontFamily": {
+            "headline-md": ["Space Grotesk"],
+            "body-md": ["Inter"],
+            "label-data-lg": ["JetBrains Mono"],
+            "label-badge": ["JetBrains Mono"],
+            "body-sm": ["Inter"],
+            "label-data-md": ["JetBrains Mono"],
+            "label-caption": ["Inter"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-xl": ["Space Grotesk"],
+            "headline-sm": ["Space Grotesk"],
+            "body-lg": ["Inter"]
+          },
+          "fontSize": {
+            "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "body-md": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+            "label-data-lg": ["24px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "label-badge": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+            "label-data-md": ["14px", { "lineHeight": "18px", "fontWeight": "600" }],
+            "label-caption": ["11px", { "lineHeight": "14px", "fontWeight": "500" }],
+            "headline-lg": ["26px", { "lineHeight": "34px", "fontWeight": "600" }],
+            "headline-xl": ["36px", { "lineHeight": "44px", "fontWeight": "700" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "fontWeight": "600" }],
+            "body-lg": ["15px", { "lineHeight": "22px", "fontWeight": "400" }]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface min-h-screen overflow-x-hidden selection:bg-primary-container selection:text-white">
+<!-- TopNavBar (Shared Component) -->
+<header class="bg-surface-container-lowest dark:bg-surface-container-lowest border-b border-outline-variant/30 flex justify-between items-center h-10 px-gutter w-full select-none fixed top-0 left-0 right-0 z-50">
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary-container text-headline-sm" data-icon="memory">memory</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface dark:text-on-surface tracking-tight">ApexDrive Optimiser</span>
+</div>
+<div class="h-4 w-px bg-surface-container-high mx-1"></div>
+<div class="flex items-center bg-surface-container-low px-2 py-0.5 rounded border border-surface-container-high/60 gap-1.5">
+<span class="material-symbols-outlined text-outline text-body-sm" data-icon="search">search</span>
+<input class="bg-transparent border-0 p-0 text-body-sm font-body-sm text-on-surface placeholder:text-outline focus:ring-0 focus:outline-none w-56" placeholder="Filter dialog specs &amp; parameters..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-primary-container hover:bg-primary-container/90 text-on-primary-container font-label-data-md text-label-data-md font-semibold active:scale-[0.98] transition-transform duration-100 ease-out">
+<span class="material-symbols-outlined text-body-sm" data-icon="play_arrow">play_arrow</span>
+<span>Scan Now</span>
+</button>
+<button class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-high hover:bg-surface-container-high/80 text-on-surface font-label-data-md text-label-data-md active:scale-[0.98] transition-transform duration-100 ease-out border border-white/5">
+<span class="material-symbols-outlined text-body-sm" data-icon="pause">pause</span>
+<span>Pause Queue</span>
+</button>
+<div class="h-4 w-px bg-surface-container-high mx-1"></div>
+<div class="flex items-center text-outline gap-1">
+<button class="p-1 hover:bg-surface-container-high/50 rounded text-outline hover:text-on-surface transition-colors" title="Memory Diagnostics">
+<span class="material-symbols-outlined text-headline-sm" data-icon="memory">memory</span>
+</button>
+<button class="p-1 hover:bg-surface-container-high/50 rounded text-outline hover:text-on-surface transition-colors relative" title="Notifications">
+<span class="material-symbols-outlined text-headline-sm" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-1.5 h-1.5 bg-primary-container rounded-full"></span>
+</button>
+<button class="p-1 hover:bg-surface-container-high/50 rounded text-outline hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-headline-sm" data-icon="minimize">minimize</span>
+</button>
+<button class="p-1 hover:bg-surface-container-high/50 rounded text-outline hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-headline-sm" data-icon="check_box_outline_blank">check_box_outline_blank</span>
+</button>
+<button class="p-1 hover:bg-error-container/40 rounded text-outline hover:text-error transition-colors">
+<span class="material-symbols-outlined text-headline-sm" data-icon="close">close</span>
+</button>
+</div>
+</div>
+</header>
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed top-10 left-0 bottom-0 w-64 flex flex-col justify-between p-gutter z-40 bg-surface-container-low dark:bg-surface-container-low border-r border-outline-variant/30 select-none">
+<div class="flex flex-col gap-space-lg">
+<!-- Drive telemetry card -->
+<div class="p-space-md rounded-lg bg-surface-container border border-white/[0.06] flex items-center justify-between">
+<div class="flex items-center gap-space-md">
+<div class="w-9 h-9 rounded-lg bg-secondary-container/15 flex items-center justify-center border border-secondary-container/30">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-headline-sm" data-icon="hard_drive" style="font-variation-settings: 'FILL' 1;">hard_drive</span>
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm text-on-surface leading-tight">NVMe Health 98%</div>
+<div class="font-label-badge text-label-badge text-secondary font-semibold">Drive C: 248 GB Free</div>
+</div>
+</div>
+</div>
+<!-- Navigation links -->
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline dark:text-outline hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container/60 dark:hover:bg-surface-container/60 transition-all duration-150" href="#library">
+<span class="material-symbols-outlined text-headline-sm" data-icon="sports_esports">sports_esports</span>
+<span class="font-body-md text-body-md">Library</span>
+</a>
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline dark:text-outline hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container/60 dark:hover:bg-surface-container/60 transition-all duration-150" href="#analyser">
+<span class="material-symbols-outlined text-headline-sm" data-icon="analytics">analytics</span>
+<span class="font-body-md text-body-md">Game Analyser</span>
+</a>
+<!-- Active Nav: Compression Setup / Supporting Dialogs context -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg bg-surface-container-high text-primary-container dark:text-primary font-semibold border-l-2 border-primary-container dark:border-primary" href="#compression">
+<span class="material-symbols-outlined text-headline-sm" data-icon="folder_zip">folder_zip</span>
+<span class="font-body-md text-body-md">Compression Setup</span>
+</a>
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline dark:text-outline hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container/60 dark:hover:bg-surface-container/60 transition-all duration-150" href="#video">
+<span class="material-symbols-outlined text-headline-sm" data-icon="movie_filter">movie_filter</span>
+<span class="font-body-md text-body-md">Video Optimisation</span>
+</a>
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline dark:text-outline hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container/60 dark:hover:bg-surface-container/60 transition-all duration-150" href="#jobs">
+<span class="material-symbols-outlined text-headline-sm" data-icon="pending_actions">pending_actions</span>
+<span class="font-body-md text-body-md">Jobs &amp; Queue</span>
+</a>
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline dark:text-outline hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container/60 dark:hover:bg-surface-container/60 transition-all duration-150" href="#settings">
+<span class="material-symbols-outlined text-headline-sm" data-icon="settings_system_daydream">settings_system_daydream</span>
+<span class="font-body-md text-body-md">Settings &amp; Storage</span>
+</a>
+</nav>
+</div>
+<!-- Sidebar footer CTA and links -->
+<div class="flex flex-col gap-space-md border-t border-outline-variant/20 pt-space-md">
+<button class="w-full py-2 px-space-md rounded-lg bg-surface-container-high hover:bg-surface-bright text-secondary font-label-data-md text-label-data-md flex items-center justify-center gap-2 border border-secondary-container/20 transition-all">
+<span class="material-symbols-outlined text-body-md" data-icon="auto_mode">auto_mode</span>
+<span>Run Trim &amp; Clean</span>
+</button>
+<div class="flex flex-col gap-0.5">
+<a class="flex items-center gap-space-md px-space-md py-1.5 rounded text-outline hover:text-on-surface text-body-sm font-body-sm transition-colors" href="#logs">
+<span class="material-symbols-outlined text-body-md" data-icon="terminal">terminal</span>
+<span>Support Logs</span>
+</a>
+<a class="flex items-center gap-space-md px-space-md py-1.5 rounded text-outline hover:text-on-surface text-body-sm font-body-sm transition-colors" href="#exit">
+<span class="material-symbols-outlined text-body-md" data-icon="power_settings_new">power_settings_new</span>
+<span>Exit Session</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Canvas Canvas Area -->
+<main class="ml-64 mt-10 p-margin bg-background min-h-[calc(100vh-2.5rem)]">
+<!-- Header banner -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between pb-space-lg mb-space-lg border-b border-outline-variant/20 gap-4">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="px-2 py-0.5 rounded-full bg-primary-container/15 text-primary text-label-badge font-label-badge uppercase tracking-wider border border-primary-container/30">Native Windows Host Shell</span>
+<span class="font-label-badge text-label-badge text-outline">Build 24H2 • Process Elevated (Admin)</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">System Supporting Dialogs Suite</h1>
+<p class="font-body-md text-body-md text-outline mt-0.5 max-w-2xl">
+          High-fidelity inspection environment showcasing critical modal workflows, preflight failure resolutions, non-destructive file confirmations, and safe storage operations.
+        </p>
+</div>
+<div class="flex items-center gap-2 flex-wrap">
+<div class="flex bg-surface-container-low p-1 rounded-lg border border-white/[0.08]">
+<button class="px-3 py-1.5 rounded bg-surface-container-high text-on-surface font-label-badge text-label-badge shadow-sm">Bento Showcase (All 6 Dialogs)</button>
+<button class="px-3 py-1.5 rounded text-outline hover:text-on-surface font-label-badge text-label-badge transition-colors">Interactive Preview Mode</button>
+</div>
+</div>
+</div>
+<!-- Bento Grid Container for all 6 Dialogs -->
+<div class="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-space-lg items-start">
+<!-- ========================================================================= -->
+<!-- DIALOG 1: 'Add Games' Dialog -->
+<!-- ========================================================================= -->
+<section class="bg-surface-container-low rounded-xl border border-white/[0.08] shadow-2xl flex flex-col overflow-hidden relative group">
+<!-- Native Window Titlebar -->
+<div class="bg-surface-container-lowest px-4 py-2 flex items-center justify-between border-b border-white/[0.06] select-none">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-body-md" data-icon="library_add">library_add</span>
+<span class="font-label-data-md text-label-data-md text-on-surface">Add Games to ApexDrive</span>
+</div>
+<div class="flex items-center gap-1.5 text-outline">
+<span class="material-symbols-outlined text-body-sm hover:text-on-surface cursor-pointer" data-icon="help_outline">help_outline</span>
+<span class="material-symbols-outlined text-body-sm hover:text-on-surface cursor-pointer" data-icon="close">close</span>
+</div>
+</div>
+<div class="p-space-lg flex flex-col gap-4">
+<!-- Discovery Source Switcher & Scan Status -->
+<div class="flex items-center justify-between bg-surface-container p-2.5 rounded-lg border border-white/[0.05]">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-fixed-dim animate-pulse"></span>
+<span class="font-body-md text-body-md text-on-surface font-medium">Auto-Discovery Engine:</span>
+<span class="font-label-badge text-label-badge px-2 py-0.5 rounded bg-surface-container-high text-secondary border border-secondary/20">Steam &amp; Epic Detected</span>
+</div>
+<span class="font-label-data-md text-label-data-md text-primary">3 New Found</span>
+</div>
+<!-- Custom Folder Path Picker -->
+<div class="flex flex-col gap-1.5">
+<label class="font-body-sm text-body-sm text-outline flex items-center justify-between">
+<span>Custom Directory Target</span>
+<span class="font-label-badge text-label-badge text-tertiary">NTFS Direct Scan</span>
+</label>
+<div class="flex gap-2">
+<div class="relative flex-1">
+<input class="w-full bg-surface-container-lowest border border-white/[0.08] rounded-lg px-3 py-1.5 font-label-data-md text-label-data-md text-on-surface focus:outline-none" readonly="" type="text" value="D:\SteamLibrary\steamapps\common"/>
+</div>
+<button class="px-3 py-1.5 bg-surface-container-high hover:bg-surface-bright border border-white/[0.08] text-on-surface rounded-lg font-body-sm text-body-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-body-md" data-icon="folder_open">folder_open</span>
+<span>Browse...</span>
+</button>
+</div>
+</div>
+<!-- Detected Games Checklist -->
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between items-center text-body-sm font-body-sm text-outline px-1">
+<span>Discovered Games (Select for Analysis)</span>
+<span>Allocated Space</span>
+</div>
+<div class="bg-surface-container-lowest rounded-lg border border-white/[0.06] divide-y divide-white/[0.04] max-h-52 overflow-y-auto">
+<!-- Item 1 -->
+<label class="flex items-center justify-between p-2.5 hover:bg-surface-container cursor-pointer transition-colors">
+<div class="flex items-center gap-3">
+<input checked="" class="rounded bg-surface-container-high border-outline-variant/50 text-primary-container focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<div>
+<div class="font-body-md text-body-md font-semibold text-on-surface">Cyberpunk 2077</div>
+<div class="font-label-badge text-label-badge text-outline">Steam AppID: 1091500 • REDengine 4</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-data-md text-label-data-md text-on-surface">68.4 GB</div>
+<span class="font-label-badge text-label-badge text-secondary">~32% Est. Reduction</span>
+</div>
+</label>
+<!-- Item 2 -->
+<label class="flex items-center justify-between p-2.5 hover:bg-surface-container cursor-pointer transition-colors">
+<div class="flex items-center gap-3">
+<input checked="" class="rounded bg-surface-container-high border-outline-variant/50 text-primary-container focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<div>
+<div class="font-body-md text-body-md font-semibold text-on-surface">Baldur's Gate 3</div>
+<div class="font-label-badge text-label-badge text-outline">Steam AppID: 1086940 • Divinity 4.0</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-data-md text-label-data-md text-on-surface">144.1 GB</div>
+<span class="font-label-badge text-label-badge text-secondary">~28% Est. Reduction</span>
+</div>
+</label>
+<!-- Item 3 -->
+<label class="flex items-center justify-between p-2.5 hover:bg-surface-container cursor-pointer transition-colors">
+<div class="flex items-center gap-3">
+<input checked="" class="rounded bg-surface-container-high border-outline-variant/50 text-primary-container focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<div>
+<div class="font-body-md text-body-md font-semibold text-on-surface">Alan Wake 2</div>
+<div class="font-label-badge text-label-badge text-outline">Epic Games Store • Northlight Engine</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-label-data-md text-label-data-md text-on-surface">86.7 GB</div>
+<span class="font-label-badge text-label-badge text-secondary">~35% Est. Reduction</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Total Selected Summary -->
+<div class="flex items-center justify-between px-3 py-2 rounded bg-surface-container border border-white/[0.04]">
+<span class="font-body-sm text-body-sm text-outline">3 items selected for import:</span>
+<span class="font-label-data-md text-label-data-md text-primary font-bold">299.2 GB Total Footprint</span>
+</div>
+<!-- CTA Bar -->
+<div class="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.06]">
+<button class="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-md text-body-md transition-colors">Cancel</button>
+<button class="px-4 py-2 rounded-lg bg-primary-container hover:bg-primary-container/90 text-on-primary-container font-headline-sm text-headline-sm font-semibold flex items-center gap-2 shadow-[0_0_16px_rgba(255,98,0,0.25)]">
+<span class="material-symbols-outlined text-body-md" data-icon="add_circle">add_circle</span>
+<span>Import Selected Games</span>
+</button>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- DIALOG 2: 'Preflight Issue' Dialog -->
+<!-- ========================================================================= -->
+<section class="bg-surface-container-low rounded-xl border border-error/30 shadow-2xl flex flex-col overflow-hidden relative">
+<!-- Native Window Titlebar with Error Accent -->
+<div class="bg-surface-container-lowest px-4 py-2 flex items-center justify-between border-b border-error/20 select-none">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-error text-body-md" data-icon="report_problem">report_problem</span>
+<span class="font-label-data-md text-label-data-md text-on-surface">Preflight Verification Blocked</span>
+</div>
+<div class="flex items-center gap-1.5 text-outline">
+<span class="material-symbols-outlined text-body-sm hover:text-on-surface cursor-pointer" data-icon="close">close</span>
+</div>
+</div>
+<div class="p-space-lg flex flex-col gap-4">
+<!-- Blocking Issue High-Visibility Banner -->
+<div class="bg-error-container/20 border border-error/40 p-3.5 rounded-lg flex items-start gap-3">
+<span class="material-symbols-outlined text-error text-headline-md flex-shrink-0" data-icon="warning">warning</span>
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface">Blocking Execution Conflicts Detected</div>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">
+                Game process <span class="font-label-data-md text-label-data-md text-error bg-surface-container-lowest px-1.5 py-0.5 rounded border border-error/30">Cyberpunk2077.exe</span> is currently running and locking archive clusters. Insufficient scratch space on <span class="font-label-data-md text-label-data-md text-on-surface">Drive C: (Only 3.2 GB available)</span>.
+              </p>
+</div>
+</div>
+<!-- Affected Files & Lock Handles List -->
+<div class="flex flex-col gap-1.5">
+<div class="flex justify-between items-center text-body-sm font-body-sm text-outline px-1">
+<span>Locked File Descriptors &amp; Process ID</span>
+<span>Lock Type</span>
+</div>
+<div class="bg-surface-container-lowest rounded-lg border border-white/[0.06] p-2 space-y-1.5">
+<div class="flex items-center justify-between p-2 rounded bg-surface-container/60 border border-white/[0.03]">
+<div class="flex items-center gap-2 overflow-hidden">
+<span class="material-symbols-outlined text-outline text-body-sm flex-shrink-0" data-icon="lock">lock</span>
+<span class="font-label-data-md text-label-data-md text-on-surface truncate">.../archive/pc/content/basegame_4_gamedata.archive</span>
+</div>
+<span class="font-label-badge text-label-badge text-error bg-error-container/30 px-2 py-0.5 rounded ml-2 flex-shrink-0">Exclusive Write (PID: 14208)</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded bg-surface-container/60 border border-white/[0.03]">
+<div class="flex items-center gap-2 overflow-hidden">
+<span class="material-symbols-outlined text-outline text-body-sm flex-shrink-0" data-icon="disc_full">disc_full</span>
+<span class="font-label-data-md text-label-data-md text-on-surface truncate">Drive C:\Temp\ApexScratch_Chunk_08.bin</span>
+</div>
+<span class="font-label-badge text-label-badge text-primary bg-primary-container/20 px-2 py-0.5 rounded ml-2 flex-shrink-0">Requires 18.5 GB Scratch</span>
+</div>
+</div>
+</div>
+<!-- Diagnostic Telemetry Advice -->
+<div class="bg-surface-container p-3 rounded-lg border border-white/[0.05] text-body-sm font-body-sm text-outline flex items-center justify-between">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary text-body-md" data-icon="info">info</span>
+<span>Recommended Scratch Target: <strong class="text-on-surface">Drive E:\ApexCache (1.2 TB Free)</strong></span>
+</span>
+<span class="font-label-badge text-label-badge text-secondary font-semibold">NVMe Gen4 Ready</span>
+</div>
+<!-- Corrective Action Buttons -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-white/[0.06]">
+<button class="w-full sm:w-auto px-3 py-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-md text-body-md flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-body-sm" data-icon="swap_horiz">swap_horiz</span>
+<span>Change Scratch Path</span>
+</button>
+<div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+<button class="px-3 py-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-md text-body-md">Abort Job</button>
+<button class="px-4 py-2 rounded-lg bg-error hover:bg-error/90 text-on-error font-headline-sm text-headline-sm font-semibold flex items-center gap-1.5 shadow-[0_0_16px_rgba(255,180,171,0.2)]">
+<span class="material-symbols-outlined text-body-md" data-icon="cancel">cancel</span>
+<span>Kill Process &amp; Retry</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- DIALOG 3: 'Cancel Job' Dialog -->
+<!-- ========================================================================= -->
+<section class="bg-surface-container-low rounded-xl border border-white/[0.08] shadow-2xl flex flex-col overflow-hidden relative">
+<!-- Native Window Titlebar -->
+<div class="bg-surface-container-lowest px-4 py-2 flex items-center justify-between border-b border-white/[0.06] select-none">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-body-md" data-icon="pause_circle">pause_circle</span>
+<span class="font-label-data-md text-label-data-md text-on-surface">Confirm Safe Cancellation</span>
+</div>
+<div class="flex items-center gap-1.5 text-outline">
+<span class="material-symbols-outlined text-body-sm hover:text-on-surface cursor-pointer" data-icon="close">close</span>
+</div>
+</div>
+<div class="p-space-lg flex flex-col gap-4">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">Halt Active Storage Task?</h3>
+<p class="font-body-md text-body-md text-outline mt-1">
+              Job <span class="font-label-data-md text-label-data-md text-on-surface">#COMP-8842: Starfield Data Compaction</span> is currently in flight at 42% completion.
+            </p>
+</div>
+<!-- Safe-Halt Explanation Matrix -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+<!-- What Stops -->
+<div class="p-3 rounded-lg bg-surface-container border border-white/[0.05] flex flex-col gap-1.5">
+<div class="flex items-center gap-1.5 text-error">
+<span class="material-symbols-outlined text-body-md" data-icon="block">block</span>
+<span class="font-headline-sm text-headline-sm font-semibold">What stops</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline">
+                Ongoing file writes and CPU worker threads halt immediately without leaving orphan lock handles.
+              </p>
+</div>
+<!-- What Remains -->
+<div class="p-3 rounded-lg bg-surface-container border border-white/[0.05] flex flex-col gap-1.5">
+<div class="flex items-center gap-1.5 text-secondary">
+<span class="material-symbols-outlined text-body-md" data-icon="save">save</span>
+<span class="font-headline-sm text-headline-sm font-semibold">What remains</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline">
+<span class="text-on-surface font-semibold">14.2 GB</span> of files already compressed remain compressed on disk. To revert, run Decompression.
+              </p>
+</div>
+</div>
+<!-- Safe Integrity Check Note -->
+<div class="bg-surface-container-lowest p-3 rounded-lg border border-white/[0.06] flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary text-headline-sm" data-icon="verified_user">verified_user</span>
+<div class="text-body-sm font-body-sm text-outline">
+<span class="text-on-surface font-semibold">Zero Corruption Guarantee:</span> Master file table (MFT) records will cleanly commit state before terminating thread pools.
+            </div>
+</div>
+<!-- Buttons -->
+<div class="flex items-center justify-between pt-2 border-t border-white/[0.06]">
+<button class="px-4 py-2 rounded-lg bg-primary-container hover:bg-primary-container/90 text-on-primary-container font-headline-sm text-headline-sm font-semibold flex items-center gap-1.5 shadow-[0_0_16px_rgba(255,98,0,0.2)]">
+<span class="material-symbols-outlined text-body-sm" data-icon="play_arrow">play_arrow</span>
+<span>Continue Operation</span>
+</button>
+<button class="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-error/20 hover:text-error hover:border-error/40 text-on-surface border border-white/[0.08] font-body-md text-body-md font-medium transition-colors">
+              Proceed with Safe Stop
+            </button>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- DIALOG 4: 'Restore Originals' Dialog -->
+<!-- ========================================================================= -->
+<section class="bg-surface-container-low rounded-xl border border-white/[0.08] shadow-2xl flex flex-col overflow-hidden relative">
+<!-- Native Window Titlebar -->
+<div class="bg-surface-container-lowest px-4 py-2 flex items-center justify-between border-b border-white/[0.06] select-none">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-body-md" data-icon="settings_backup_restore">settings_backup_restore</span>
+<span class="font-label-data-md text-label-data-md text-on-surface">Restore Uncompressed Originals</span>
+</div>
+<div class="flex items-center gap-1.5 text-outline">
+<span class="material-symbols-outlined text-body-sm hover:text-on-surface cursor-pointer" data-icon="close">close</span>
+</div>
+</div>
+<div class="p-space-lg flex flex-col gap-4">
+<!-- Game Context & Metrics -->
+<div class="flex items-center justify-between border-b border-white/[0.05] pb-3">
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface">Forza Horizon 5</div>
+<div class="font-body-sm text-body-sm text-outline">Snapshot ID: #SNAP-2024-FH5-XPRESS16K</div>
+</div>
+<div class="text-right">
+<span class="font-label-badge text-label-badge text-outline">Required Free Space</span>
+<div class="font-label-data-lg text-label-data-lg text-primary">24.2 GB</div>
+</div>
+</div>
+<!-- Path Configuration -->
+<div class="space-y-2.5">
+<div class="flex flex-col gap-1">
+<span class="font-body-sm text-body-sm text-outline">Backup Archive Source</span>
+<div class="bg-surface-container-lowest px-3 py-1.5 rounded-lg border border-white/[0.08] font-label-data-md text-label-data-md text-tertiary truncate">
+                E:\ApexBackups\ForzaHorizon5_RawOriginals.apexarc
+              </div>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-body-sm text-body-sm text-outline">Destination Directory</span>
+<div class="bg-surface-container-lowest px-3 py-1.5 rounded-lg border border-white/[0.08] font-label-data-md text-label-data-md text-on-surface truncate">
+                C:\Games\SteamLibrary\steamapps\common\ForzaHorizon5
+              </div>
+</div>
+</div>
+<!-- File Conflict Resolution Selector -->
+<div class="flex flex-col gap-2 bg-surface-container p-3 rounded-lg border border-white/[0.05]">
+<span class="font-body-sm text-body-sm text-on-surface font-semibold">File Conflict Resolution Policy</span>
+<div class="grid grid-cols-2 gap-2">
+<label class="flex items-center gap-2 p-2 rounded bg-surface-container-high border border-primary-container/40 cursor-pointer">
+<input checked="" class="text-primary-container focus:ring-0 focus:ring-offset-0 bg-surface-container-low" name="conflict" type="radio"/>
+<div>
+<div class="font-body-sm text-body-sm font-medium text-on-surface">Overwrite Existing</div>
+<div class="font-label-badge text-label-badge text-outline">Bit-perfect pristine state</div>
+</div>
+</label>
+<label class="flex items-center gap-2 p-2 rounded bg-surface-container-low border border-white/[0.06] hover:bg-surface-container-high cursor-pointer transition-colors">
+<input class="text-primary-container focus:ring-0 focus:ring-offset-0 bg-surface-container-low" name="conflict" type="radio"/>
+<div>
+<div class="font-body-sm text-body-sm font-medium text-on-surface">Keep Newer Files</div>
+<div class="font-label-badge text-label-badge text-outline">Preserves recent patch deltas</div>
+</div>
+</label>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.06]">
+<button class="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-md text-body-md">Cancel</button>
+<button class="px-4 py-2 rounded-lg bg-tertiary-container hover:bg-tertiary-container/90 text-on-tertiary font-headline-sm text-headline-sm font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-body-md" data-icon="restore">restore</span>
+<span>Confirm Restore</span>
+</button>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- DIALOG 5: 'Delete Backup' Dialog -->
+<!-- ========================================================================= -->
+<section class="bg-surface-container-low rounded-xl border border-error-container/40 shadow-2xl flex flex-col overflow-hidden relative">
+<!-- Native Window Titlebar with Alert Stance -->
+<div class="bg-surface-container-lowest px-4 py-2 flex items-center justify-between border-b border-error-container/30 select-none">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-error text-body-md" data-icon="delete_forever">delete_forever</span>
+<span class="font-label-data-md text-label-data-md text-on-surface">Permanent Archive Purge</span>
+</div>
+<div class="flex items-center gap-1.5 text-outline">
+<span class="material-symbols-outlined text-body-sm hover:text-on-surface cursor-pointer" data-icon="close">close</span>
+</div>
+</div>
+<div class="p-space-lg flex flex-col gap-4">
+<!-- Reclaimed Space Header Notice -->
+<div class="flex items-center justify-between bg-surface-container p-3 rounded-lg border border-white/[0.05]">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-secondary-container/15 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-body-lg" data-icon="cleaning_services">cleaning_services</span>
+</div>
+<div>
+<div class="font-body-md text-body-md font-bold text-on-surface">Reclaimed Storage Metric</div>
+<div class="font-label-badge text-label-badge text-outline">Target Partition: Backup Drive E:</div>
+</div>
+</div>
+<div class="font-label-data-lg text-label-data-lg text-secondary font-bold">+24.2 GB Freed</div>
+</div>
+<!-- High Visibility Critical Warning Box -->
+<div class="bg-surface-container-lowest p-3.5 rounded-lg border-l-4 border-error flex flex-col gap-2">
+<div class="flex items-center gap-2 text-error font-headline-sm text-headline-sm font-bold">
+<span class="material-symbols-outlined text-body-lg" data-icon="dangerous">dangerous</span>
+<span>Irreversible Action Notice</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">
+              Local restoration will no longer be possible without redownloading files via Steam/Epic.
+            </p>
+<p class="font-body-sm text-body-sm text-outline">
+              Target container file: <code class="font-label-badge text-label-badge bg-surface-container px-1 py-0.5 rounded text-error">E:\ApexBackups\ForzaHorizon5_RawOriginals.apexarc</code> (SHA-256 Verified).
+            </p>
+</div>
+<!-- Secondary confirmation checkbox -->
+<label class="flex items-start gap-2.5 p-2 rounded hover:bg-surface-container cursor-pointer select-none">
+<input class="mt-0.5 rounded bg-surface-container-high border-outline-variant text-error focus:ring-0 focus:ring-offset-0" type="checkbox"/>
+<span class="font-body-sm text-body-sm text-outline">
+              I acknowledge that rolling back this game to raw uncompressed states will mandate a full Steam verification download.
+            </span>
+</label>
+<!-- Buttons -->
+<div class="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.06]">
+<button class="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-md text-body-md">Keep Backup</button>
+<button class="px-4 py-2 rounded-lg bg-error-container hover:bg-error-container/90 text-on-error-container font-headline-sm text-headline-sm font-semibold flex items-center gap-2 border border-error/30 shadow-[0_0_16px_rgba(147,0,10,0.3)]">
+<span class="material-symbols-outlined text-body-md" data-icon="delete">delete</span>
+<span>Permanently Delete</span>
+</button>
+</div>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- DIALOG 6: 'Remove Game from Library' Dialog -->
+<!-- ========================================================================= -->
+<section class="bg-surface-container-low rounded-xl border border-white/[0.08] shadow-2xl flex flex-col overflow-hidden relative">
+<!-- Native Window Titlebar -->
+<div class="bg-surface-container-lowest px-4 py-2 flex items-center justify-between border-b border-white/[0.06] select-none">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-body-md" data-icon="playlist_remove">playlist_remove</span>
+<span class="font-label-data-md text-label-data-md text-on-surface">Untrack Game Record</span>
+</div>
+<div class="flex items-center gap-1.5 text-outline">
+<span class="material-symbols-outlined text-body-sm hover:text-on-surface cursor-pointer" data-icon="close">close</span>
+</div>
+</div>
+<div class="p-space-lg flex flex-col gap-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center border border-white/[0.06]">
+<span class="material-symbols-outlined text-primary text-headline-md" data-icon="sports_esports">sports_esports</span>
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm font-bold text-on-surface">Remove "Red Dead Redemption 2" from Index?</div>
+<div class="font-body-sm text-body-sm text-outline">App Entry: #APX-RDR2-1190460</div>
+</div>
+</div>
+<!-- Explicit Distinction Callout Box -->
+<div class="bg-surface-container-high/60 border border-white/[0.08] p-3.5 rounded-lg flex items-start gap-3">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-headline-sm flex-shrink-0" data-icon="check_circle">check_circle</span>
+<div>
+<div class="font-headline-sm text-headline-sm font-semibold text-secondary-fixed-dim">Files Remain Safe on Disk</div>
+<p class="font-body-md text-body-md text-on-surface mt-1">
+                This only removes the game entry from ApexDrive Optimiser. Your actual game files, saves, and Steam installation will NOT be deleted.
+              </p>
+</div>
+</div>
+<!-- Configuration options -->
+<div class="bg-surface-container-lowest p-3 rounded-lg border border-white/[0.05] space-y-2">
+<label class="flex items-center justify-between text-body-sm font-body-sm text-outline cursor-pointer">
+<span>Retain compression telemetry statistics</span>
+<input checked="" class="rounded bg-surface-container-high border-outline-variant/40 text-primary-container focus:ring-0" type="checkbox"/>
+</label>
+<div class="h-px bg-white/[0.04]"></div>
+<label class="flex items-center justify-between text-body-sm font-body-sm text-outline cursor-pointer">
+<span>Suppress auto-rediscovery on next library scan</span>
+<input class="rounded bg-surface-container-high border-outline-variant/40 text-primary-container focus:ring-0" type="checkbox"/>
+</label>
+</div>
+<!-- CTA Buttons -->
+<div class="flex items-center justify-end gap-2 pt-2 border-t border-white/[0.06]">
+<button class="px-4 py-2 rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-body-md text-body-md">Keep in Library</button>
+<button class="px-4 py-2 rounded-lg bg-surface-container hover:bg-error-container hover:text-on-error-container text-on-surface border border-white/[0.08] font-headline-sm text-headline-sm font-semibold transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-body-sm" data-icon="visibility_off">visibility_off</span>
+<span>Remove from ApexDrive</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Active Modal Workflow Simulation Strip (Floating Action Bar / Context Preview) -->
+<div class="mt-space-xl p-space-lg rounded-xl bg-surface-container-low border border-white/[0.07] flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-primary-container/20 flex items-center justify-center border border-primary-container/30">
+<span class="material-symbols-outlined text-primary-container" data-icon="tune">tune</span>
+</div>
+<div>
+<div class="font-headline-sm text-headline-sm text-on-surface font-semibold">Native Desktop Dialog Guidelines Compliance</div>
+<div class="font-body-sm text-body-sm text-outline">All modals utilize dark theme hairline strokes (1px rgba(255,255,255,0.07)), high-contrast typography, and explicit non-destructive verbiage.</div>
+</div>
+</div>
+<div class="flex items-center gap-2 text-label-badge font-label-badge">
+<span class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface border border-white/5">Esc to Dismiss</span>
+<span class="px-2.5 py-1 rounded bg-surface-container-high text-on-surface border border-white/5">Enter to Confirm</span>
+<span class="px-2.5 py-1 rounded bg-secondary-container/20 text-secondary-fixed-dim border border-secondary-container/30">Sandboxed I/O Safe</span>
+</div>
+</div>
+</main>
+<script>
+    // Lightweight micro-interaction script for dialog interactive controls
+    document.addEventListener('DOMContentLoaded', () => {
+      // Toggle checkboxes update summary dynamically if needed
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+          // Micro-haptic tactile visual feedback
+          cb.parentElement.classList.toggle('bg-surface-container/40', cb.checked);
+        });
+      });
+    });
+  </script>
+</body></html>

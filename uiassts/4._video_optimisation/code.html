@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ApexDrive Optimiser - Video Optimisation</title>
+<!-- Google Fonts & Material Symbols -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary": "#003546",
+            "on-tertiary-container": "#003242",
+            "on-primary-fixed": "#360f00",
+            "primary": "#ffb597",
+            "primary-container": "#ff6200",
+            "background": "#111316",
+            "on-background": "#e2e2e6",
+            "tertiary-container": "#00a1ce",
+            "on-primary-container": "#541b00",
+            "surface-container-low": "#1a1c1f",
+            "outline": "#aa8a7d",
+            "on-secondary-fixed-variant": "#005226",
+            "surface-container-high": "#282a2d",
+            "surface-tint": "#ffb597",
+            "primary-fixed-dim": "#ffb597",
+            "on-error": "#690005",
+            "secondary-container": "#05e777",
+            "surface-dim": "#111316",
+            "tertiary": "#68d3ff",
+            "surface-bright": "#37393d",
+            "on-tertiary-fixed": "#001f2a",
+            "primary-fixed": "#ffdbcd",
+            "surface-container-lowest": "#0c0e11",
+            "on-error-container": "#ffdad6",
+            "surface-container-highest": "#333538",
+            "inverse-on-surface": "#2f3034",
+            "error-container": "#93000a",
+            "on-secondary": "#003918",
+            "error": "#ffb4ab",
+            "inverse-primary": "#a53d00",
+            "surface": "#111316",
+            "surface-variant": "#333538",
+            "on-secondary-fixed": "#00210b",
+            "secondary": "#7dffa2",
+            "surface-container": "#1e2023",
+            "inverse-surface": "#e2e2e6",
+            "on-primary-fixed-variant": "#7e2c00",
+            "on-tertiary-fixed-variant": "#004d64",
+            "tertiary-fixed": "#bee9ff",
+            "on-surface-variant": "#e3bfb1",
+            "outline-variant": "#5a4137",
+            "secondary-fixed-dim": "#00e475",
+            "on-surface": "#e2e2e6",
+            "on-primary": "#591d00",
+            "tertiary-fixed-dim": "#68d3ff",
+            "on-secondary-container": "#00622e",
+            "secondary-fixed": "#62ff96"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xs": "0.25rem",
+            "gutter": "1rem",
+            "margin": "1.25rem",
+            "space-lg": "1rem",
+            "space-sm": "0.5rem",
+            "space-xl": "1.5rem",
+            "space-md": "0.75rem"
+          },
+          "fontFamily": {
+            "headline-md": ["Space Grotesk"],
+            "body-md": ["Inter"],
+            "label-data-lg": ["JetBrains Mono"],
+            "label-badge": ["JetBrains Mono"],
+            "body-sm": ["Inter"],
+            "label-data-md": ["JetBrains Mono"],
+            "label-caption": ["Inter"],
+            "headline-lg": ["Space Grotesk"],
+            "headline-xl": ["Space Grotesk"],
+            "headline-sm": ["Space Grotesk"],
+            "body-lg": ["Inter"]
+          },
+          "fontSize": {
+            "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+            "body-md": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+            "label-data-lg": ["24px", {"lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "label-badge": ["11px", {"lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "700"}],
+            "body-sm": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+            "label-data-md": ["14px", {"lineHeight": "18px", "fontWeight": "600"}],
+            "label-caption": ["11px", {"lineHeight": "14px", "fontWeight": "500"}],
+            "headline-lg": ["26px", {"lineHeight": "34px", "fontWeight": "600"}],
+            "headline-xl": ["36px", {"lineHeight": "44px", "fontWeight": "700"}],
+            "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+            "body-lg": ["15px", {"lineHeight": "22px", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface antialiased overflow-hidden select-none font-body-md text-body-md">
+<!-- TOP NAV BAR (Shared Component Anchor) -->
+<header class="flex justify-between items-center h-10 px-gutter w-full bg-surface-container-lowest dark:bg-surface-container-lowest fixed top-0 left-0 right-0 z-50">
+<!-- Left: Brand / Logo & Quick Search -->
+<div class="flex items-center gap-space-lg">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[18px]" data-icon="speed">speed</span>
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface dark:text-on-surface tracking-tight">ApexDrive Optimiser</span>
+</div>
+<div class="relative flex items-center ml-space-md">
+<span class="material-symbols-outlined absolute left-2 text-[14px] text-outline" data-icon="search">search</span>
+<input class="bg-surface-container-low text-on-surface font-body-sm text-body-sm pl-7 pr-3 py-1 rounded-lg border border-white/5 focus:outline-none focus:border-primary-container w-64 h-7 transition-colors" placeholder="Search cutscenes, game titles..." type="text"/>
+</div>
+</div>
+<!-- Right: Trailing Actions, Icon Buttons & Window Controls -->
+<div class="flex items-center gap-space-md">
+<button class="flex items-center gap-1.5 px-space-md py-0.5 rounded-lg bg-surface-container hover:bg-surface-container-high/50 text-on-surface font-label-data-md text-label-data-md active:scale-[0.98] transition-transform duration-100 ease-out border border-white/5">
+<span class="material-symbols-outlined text-[14px] text-outline" data-icon="pause_circle">pause_circle</span>
+<span>Pause Queue</span>
+</button>
+<button class="flex items-center gap-1.5 px-space-md py-0.5 rounded-lg bg-primary-container text-on-primary-container font-label-data-md text-label-data-md font-semibold active:scale-[0.98] transition-transform duration-100 ease-out shadow-[0_0_12px_rgba(255,98,0,0.25)]">
+<span class="material-symbols-outlined text-[14px]" data-icon="bolt">bolt</span>
+<span>Scan Now</span>
+</button>
+<div class="h-4 w-px bg-surface-container-highest"></div>
+<!-- Trailing Icon Actions -->
+<div class="flex items-center gap-1">
+<button class="p-1 rounded hover:bg-surface-container-high/50 text-outline hover:text-on-surface transition-colors" title="Memory Telemetry">
+<span class="material-symbols-outlined text-[16px]" data-icon="memory">memory</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-container-high/50 text-outline hover:text-on-surface transition-colors relative" title="Notifications">
+<span class="material-symbols-outlined text-[16px]" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-1.5 h-1.5 bg-primary-container rounded-full"></span>
+</button>
+</div>
+<div class="h-4 w-px bg-surface-container-highest"></div>
+<!-- Window Frame Buttons -->
+<div class="flex items-center gap-0.5">
+<button class="p-1 rounded hover:bg-surface-container-high/50 text-outline hover:text-on-surface transition-colors" title="Minimize">
+<span class="material-symbols-outlined text-[15px]" data-icon="minimize">minimize</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-container-high/50 text-outline hover:text-on-surface transition-colors" title="Maximize">
+<span class="material-symbols-outlined text-[15px]" data-icon="check_box_outline_blank">check_box_outline_blank</span>
+</button>
+<button class="p-1 rounded hover:bg-error-container text-outline hover:text-error transition-colors" title="Close">
+<span class="material-symbols-outlined text-[15px]" data-icon="close">close</span>
+</button>
+</div>
+</div>
+</header>
+<!-- SIDE NAV BAR (Shared Component Anchor) -->
+<aside class="fixed top-10 left-0 bottom-0 w-64 flex flex-col justify-between p-gutter z-40 bg-surface-container-low dark:bg-surface-container-low border-r border-outline-variant/30 select-none">
+<div class="flex flex-col gap-space-lg">
+<!-- Drive Telemetry Header Card -->
+<div class="p-space-md rounded-xl bg-surface-container border border-white/5 flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[20px]" data-icon="hard_drive">hard_drive</span>
+<span class="font-headline-sm text-headline-sm font-semibold text-on-surface">NVMe Health 98%</span>
+</div>
+<span class="w-2 h-2 rounded-full bg-secondary-container shadow-[0_0_8px_rgba(5,231,119,0.5)]"></span>
+</div>
+<p class="font-body-sm text-body-sm text-outline">Drive C: 248 GB Free</p>
+<button class="mt-1 w-full py-1.5 px-space-sm rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-label-badge text-label-badge flex items-center justify-center gap-1.5 border border-white/5 active:scale-[0.99] transition-all">
+<span class="material-symbols-outlined text-[14px] text-primary" data-icon="cleaning_services">cleaning_services</span>
+<span>Run Trim &amp; Clean</span>
+</button>
+</div>
+<!-- Main Navigation Links -->
+<!-- Semantic Active Mapping: Current page is "Video Optimisation" -->
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline dark:text-outline hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container/60 dark:hover:bg-surface-container/60 transition-all duration-150 active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="sports_esports">sports_esports</span>
+<span class="font-body-md text-body-md">Library</span>
+</a>
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline dark:text-outline hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container/60 dark:hover:bg-surface-container/60 transition-all duration-150 active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="analytics">analytics</span>
+<span class="font-body-md text-body-md">Game Analyser</span>
+</a>
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline dark:text-outline hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container/60 dark:hover:bg-surface-container/60 transition-all duration-150 active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="folder_zip">folder_zip</span>
+<span class="font-body-md text-body-md">Compression Setup</span>
+</a>
+<!-- ACTIVE TAB -->
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg bg-surface-container-high text-primary-container dark:text-primary font-semibold border-l-2 border-primary-container dark:border-primary active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="movie_filter">movie_filter</span>
+<span class="font-body-md text-body-md">Video Optimisation</span>
+</a>
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline dark:text-outline hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container/60 dark:hover:bg-surface-container/60 transition-all duration-150 active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="pending_actions">pending_actions</span>
+<span class="font-body-md text-body-md">Jobs &amp; Queue</span>
+</a>
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline dark:text-outline hover:text-on-surface dark:hover:text-on-surface hover:bg-surface-container/60 dark:hover:bg-surface-container/60 transition-all duration-150 active:scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="settings_system_daydream">settings_system_daydream</span>
+<span class="font-body-md text-body-md">Settings &amp; Storage</span>
+</a>
+</nav>
+</div>
+<!-- SideNav Footer Tabs -->
+<div class="flex flex-col gap-1 border-t border-outline-variant/30 pt-3">
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="terminal">terminal</span>
+<span class="font-body-md text-body-md">Support Logs</span>
+</a>
+<a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-outline hover:text-on-surface hover:bg-surface-container/60 transition-all" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="power_settings_new">power_settings_new</span>
+<span class="font-body-md text-body-md">Exit Session</span>
+</a>
+</div>
+</aside>
+<!-- MAIN WORKFLOW CANVAS (Video Optimisation - Starfield) -->
+<main class="fixed top-10 left-64 right-0 bottom-0 overflow-y-auto p-gutter bg-surface-dim flex flex-col gap-space-lg">
+<!-- Title & Context Breadcrumb Header -->
+<div class="flex items-center justify-between border-b border-white/5 pb-3">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="font-label-badge text-label-badge text-tertiary uppercase tracking-wider bg-tertiary-container/20 px-2 py-0.5 rounded">Game Profile Loaded</span>
+<span class="text-outline text-body-sm">/</span>
+<span class="font-body-sm text-body-sm text-outline">Starfield (Steam: appid 1716740)</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight mt-0.5">Video Optimisation - Starfield</h1>
+</div>
+<!-- Quick Action / Switch Profile -->
+<div class="flex items-center gap-2 bg-surface-container p-1 rounded-lg border border-white/5">
+<button class="px-space-md py-1 rounded bg-primary-container text-on-primary-container font-label-badge text-label-badge font-bold transition-all shadow-[0_0_10px_rgba(255,98,0,0.3)]" id="tab-profile-rec">
+          Tested Game Profile (Recommended AV1/H.265)
+        </button>
+<button class="px-space-md py-1 rounded text-outline hover:text-on-surface font-label-badge text-label-badge transition-all" id="tab-profile-custom">
+          Custom Manual Selection
+        </button>
+</div>
+</div>
+<!-- 12-Column Responsive Bento Layout -->
+<div class="grid grid-cols-12 gap-space-lg">
+<!-- LEFT 7 COLS: Detected Videos List & Side-by-Side Artifact Inspector -->
+<div class="col-span-12 xl:col-span-7 flex flex-col gap-space-lg">
+<!-- PANEL 1: Detected Cutscenes & Codec Status -->
+<div class="bg-surface-container-low rounded-xl border border-white/5 p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="video_library">video_library</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Detected Game Media (11 files)</h2>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-badge text-label-badge text-secondary bg-secondary/10 px-2 py-0.5 rounded-full border border-secondary/20">8 Transcodable</span>
+<span class="font-label-badge text-label-badge text-error bg-error-container/40 px-2 py-0.5 rounded-full border border-error/30">3 Proprietary Locked</span>
+</div>
+</div>
+<!-- Video Item Rows -->
+<div class="flex flex-col gap-2 max-h-56 overflow-y-auto pr-1">
+<!-- Item 1: Selected Transcodable -->
+<div class="p-2.5 rounded-lg bg-surface-container-high/80 border border-primary-container/40 flex items-center justify-between hover:bg-surface-container-high transition-colors">
+<div class="flex items-center gap-3">
+<input checked="" class="rounded border-outline/40 text-primary-container focus:ring-0 bg-surface-container-lowest" type="checkbox"/>
+<div class="flex flex-col">
+<span class="font-label-data-md text-label-data-md text-on-surface flex items-center gap-2">
+                    intro_logo_cinematic.bk2
+                    <span class="font-label-badge text-label-badge px-1.5 py-0.2 bg-surface-container-highest text-tertiary rounded">4K 3840x2160</span>
+</span>
+<span class="font-body-sm text-body-sm text-outline">00:01:42 • Bink 2 (.bk2) • Ingest Bitrate: 48 Mbps</span>
+</div>
+</div>
+<div class="flex items-center gap-4 text-right">
+<div class="flex flex-col">
+<span class="font-label-data-md text-label-data-md text-on-surface">1.82 GB</span>
+<span class="font-label-badge text-label-badge text-secondary">Target: 340 MB (-81%)</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]" data-icon="check_circle" title="Compatible for hardware decode injection">check_circle</span>
+</div>
+</div>
+<!-- Item 2: Selected Transcodable -->
+<div class="p-2.5 rounded-lg bg-surface-container border border-white/5 flex items-center justify-between hover:bg-surface-container-high/60 transition-colors">
+<div class="flex items-center gap-3">
+<input checked="" class="rounded border-outline/40 text-primary-container focus:ring-0 bg-surface-container-lowest" type="checkbox"/>
+<div class="flex flex-col">
+<span class="font-label-data-md text-label-data-md text-on-surface flex items-center gap-2">
+                    prologue_constellation_dock.mp4
+                    <span class="font-label-badge text-label-badge px-1.5 py-0.2 bg-surface-container-highest text-tertiary rounded">4K 3840x2160</span>
+</span>
+<span class="font-body-sm text-body-sm text-outline">00:06:14 • H.264 High Profile • Ingest Bitrate: 62 Mbps</span>
+</div>
+</div>
+<div class="flex items-center gap-4 text-right">
+<div class="flex flex-col">
+<span class="font-label-data-md text-label-data-md text-on-surface">4.10 GB</span>
+<span class="font-label-badge text-label-badge text-secondary">Target: 890 MB (-78%)</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]" data-icon="check_circle" title="Compatible for hardware decode injection">check_circle</span>
+</div>
+</div>
+<!-- Item 3: Transcodable 1440p -->
+<div class="p-2.5 rounded-lg bg-surface-container border border-white/5 flex items-center justify-between hover:bg-surface-container-high/60 transition-colors">
+<div class="flex items-center gap-3">
+<input checked="" class="rounded border-outline/40 text-primary-container focus:ring-0 bg-surface-container-lowest" type="checkbox"/>
+<div class="flex flex-col">
+<span class="font-label-data-md text-label-data-md text-on-surface flex items-center gap-2">
+                    spaceport_atlantis_arrival.webm
+                    <span class="font-label-badge text-label-badge px-1.5 py-0.2 bg-surface-container-highest text-outline rounded">1440p 2560x1440</span>
+</span>
+<span class="font-body-sm text-body-sm text-outline">00:03:10 • VP9 • Ingest Bitrate: 32 Mbps</span>
+</div>
+</div>
+<div class="flex items-center gap-4 text-right">
+<div class="flex flex-col">
+<span class="font-label-data-md text-label-data-md text-on-surface">1.25 GB</span>
+<span class="font-label-badge text-label-badge text-secondary">Target: 410 MB (-67%)</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-[20px]" data-icon="check_circle" title="Ready">check_circle</span>
+</div>
+</div>
+<!-- Item 4: Locked Proprietary format with Reason -->
+<div class="p-2.5 rounded-lg bg-surface-container-lowest/60 border border-error-container/30 flex items-center justify-between opacity-80">
+<div class="flex items-center gap-3">
+<input class="rounded border-outline/20 text-outline cursor-not-allowed bg-surface-container-high" disabled="" type="checkbox"/>
+<div class="flex flex-col">
+<span class="font-label-data-md text-label-data-md text-error flex items-center gap-2">
+                    ui_hud_bootsequence_overlay.bk2
+                    <span class="font-label-badge text-label-badge px-1.5 py-0.2 bg-error-container/30 text-error rounded">Locked Bink 2 Alpha</span>
+</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Contains packed premultiplied 8-bit alpha channel mask. Re-encoding will break HUD transparency in engine runtime.</span>
+</div>
+</div>
+<div class="flex items-center gap-3 text-right">
+<span class="font-label-data-md text-label-data-md text-outline">480 MB</span>
+<span class="material-symbols-outlined text-error text-[20px]" data-icon="lock" title="Proprietary / Alpha locked">lock</span>
+</div>
+</div>
+</div>
+</div>
+<!-- PANEL 2: Interactive Side-by-Side Frame & Artifact Inspector -->
+<div class="bg-surface-container-low rounded-xl border border-white/5 p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[20px]" data-icon="compare">compare</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Telemetry Artifact Inspector (Frame #1842)</h2>
+</div>
+<!-- Viewer Controls -->
+<div class="flex items-center gap-2">
+<button class="px-2 py-0.5 rounded bg-surface-container text-outline hover:text-on-surface font-label-badge text-label-badge flex items-center gap-1 border border-white/5">
+<span class="material-symbols-outlined text-[13px]" data-icon="zoom_in">zoom_in</span> 200% Loupe
+              </button>
+<button class="px-2 py-0.5 rounded bg-surface-container text-tertiary font-label-badge text-label-badge flex items-center gap-1 border border-white/5">
+<span class="material-symbols-outlined text-[13px]" data-icon="grid_4x4">grid_4x4</span> SSIM Heatmap
+              </button>
+</div>
+</div>
+<!-- Side-by-Side Visual Split Canvas -->
+<div class="grid grid-cols-2 gap-2 relative bg-surface-container-lowest rounded-lg p-2 border border-white/5">
+<!-- Left: Original -->
+<div class="relative group rounded overflow-hidden aspect-video bg-surface-container-high">
+<img class="w-full h-full object-cover" data-alt="High fidelity crisp 4K sci-fi video game cutscene frame from Starfield displaying detailed metallic spaceship hull under intense galactic starlight and neon telemetry hud in deep void space, cinematic photorealistic lighting and sharp textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDx_RnFh4iU9feX0s9wI4jXqz9P7tvm_KUobK86eRogozNo3ifJDMEzOoPF1GQWbxGj39fZrKjnQoDMKBBj3G22v_ic0NQ3RtptZ-4kZarChC22SKHg9i1Q3Suk8ufR60BOYn_HRICRQVxu4VDv_XmUOkV6nyKhqyMHJUc-VveXWFz4kmIhP-_MYgB1ESd1X7M_lqNaTadAH6HMJxJcjQ9_f7vzkzEVC1TiI6pnxcs"/>
+<div class="absolute top-2 left-2 bg-surface-container-lowest/80 backdrop-blur px-2 py-0.5 rounded text-outline font-label-badge text-label-badge border border-white/5">
+                ORIGINAL (4K 60fps Native • 48 Mbps)
+              </div>
+<div class="absolute bottom-2 left-2 bg-surface-container-lowest/90 px-2 py-0.5 rounded font-label-data-md text-label-data-md text-on-surface">
+                VMAF: 100.0 (Reference)
+              </div>
+</div>
+<!-- Right: Converted AV1 Preview -->
+<div class="relative group rounded overflow-hidden aspect-video bg-surface-container-high border border-primary-container/30">
+<img class="w-full h-full object-cover" data-alt="Re-encoded 1080p high efficiency AV1 cutscene video frame identical sci-fi spaceship frame with preserved micro grain, pristine specular reflections, and zero noticeable macroblocking, calibrated with high performance clean edge fidelity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0kSNrOO4xyzi7WAw_vLtdYqfjeQ51xg3DpdyVuNDmeHaaO90nh58sMv76IsGJwNyUwNCV6cuVB77lDUHh4RjIVA9T4Wu47W9h9YFd4Z3Ixsx0TyDsDtwCP5YOezP2aTukjMbgNor4srEn6vmcqsp2OfZf83MNVBYAxQRpL9WAPhHzvUIowuhEubPhRMyikP-PQ2dBl9g7QqUC_5oXVmB5eOitFiCGPvbFlYhgkVo"/>
+<div class="absolute top-2 left-2 bg-primary-container/90 text-on-primary-container font-label-badge text-label-badge px-2 py-0.5 rounded font-semibold">
+                TARGET PREVIEW (1080p AV1 CRF 22 • 8.4 Mbps)
+              </div>
+<div class="absolute bottom-2 right-2 bg-surface-container-lowest/90 px-2 py-0.5 rounded font-label-data-md text-label-data-md text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="verified">verified</span>
+                VMAF: 96.8 (Imperceptible Delta)
+              </div>
+</div>
+<!-- Center Comparison Divider Badge -->
+<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface-container-high border border-white/10 px-2 py-1 rounded-full shadow-lg font-label-badge text-label-badge text-on-surface pointer-events-none">
+              VS
+            </div>
+</div>
+<!-- Codec Efficiency Metric Footnote -->
+<div class="flex items-center justify-between text-body-sm text-outline px-1">
+<span>Encoding Engine: <span class="text-on-surface font-label-data-md text-label-data-md">SVT-AV1 v1.8 (Hardware AVX-512 accelerated)</span></span>
+<span class="text-secondary font-label-badge text-label-badge">Bitrate Savings: -79.2% without banding</span>
+</div>
+</div>
+</div>
+<!-- RIGHT 5 COLS: Conversion Settings, Crucial Backup Choice, & Space Indicator -->
+<div class="col-span-12 xl:col-span-5 flex flex-col gap-space-lg">
+<!-- PANEL 3: Conversion Target Settings -->
+<div class="bg-surface-container-low rounded-xl border border-white/5 p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]" data-icon="tune">tune</span>
+              Target Encoding Parameters
+            </h2>
+<span class="font-label-badge text-label-badge text-outline">Profile: Balanced Starfield</span>
+</div>
+<div class="grid grid-cols-2 gap-space-md">
+<!-- Target Resolution -->
+<div class="flex flex-col gap-1.5">
+<label class="font-body-sm text-body-sm text-outline">Target Resolution</label>
+<select class="bg-surface-container text-on-surface font-body-sm text-body-sm rounded-lg border border-white/10 p-2 focus:ring-1 focus:ring-primary-container outline-none">
+<option selected="">1080p (Preserve Aspect Ratio)</option>
+<option>1440p (High Res Balanced)</option>
+<option>720p (Maximum Space Save)</option>
+<option>Source Native (Re-encode bitstream only)</option>
+</select>
+</div>
+<!-- Codec Container Selection -->
+<div class="flex flex-col gap-1.5">
+<label class="font-body-sm text-body-sm text-outline">Video Codec</label>
+<select class="bg-surface-container text-on-surface font-body-sm text-body-sm rounded-lg border border-white/10 p-2 focus:ring-1 focus:ring-primary-container outline-none">
+<option selected="">AV1 (libsvtav1 - Maximum compression)</option>
+<option>H.265 / HEVC (NVENC Hardware)</option>
+<option>H.264 (Maximum engine compatibility)</option>
+</select>
+</div>
+</div>
+<!-- Quality Slider & Preset -->
+<div class="flex flex-col gap-2 pt-1">
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-outline">Quality Preset (Rate Factor)</span>
+<span class="font-label-data-md text-label-data-md text-primary">CRF 22 (Near-Visual Lossless)</span>
+</div>
+<input class="w-full accent-primary-container bg-surface-container-highest h-1.5 rounded-lg cursor-pointer" max="32" min="16" type="range" value="22"/>
+<div class="flex justify-between text-[10px] text-outline font-label-badge">
+<span>CRF 16 (Heavy Size)</span>
+<span>CRF 22 (Optimal)</span>
+<span>CRF 30 (Compact)</span>
+</div>
+</div>
+<!-- Audio Passthrough Option Toggle -->
+<div class="flex items-center justify-between pt-1 border-t border-white/5">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface font-medium">5.1 / Stereo Audio Passthrough</span>
+<span class="font-body-sm text-body-sm text-outline">Copies original multichannel PCM/Opus streams without recompressing</span>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+</div>
+<!-- PANEL 4: Backup Strategy Selection (Crucial Choice) -->
+<div class="bg-surface-container-low rounded-xl border border-white/5 p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[18px]" data-icon="shield">shield</span>
+              Backup Strategy Selection
+            </h2>
+<span class="font-label-badge text-label-badge text-error bg-error-container/30 px-1.5 py-0.5 rounded border border-error/20">Critical Decision</span>
+</div>
+<!-- Radio 1: Keep originals in path -->
+<label class="p-3 rounded-lg bg-surface-container border border-white/5 hover:border-outline-variant cursor-pointer flex flex-col gap-2 transition-all">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<input checked="" class="text-primary-container focus:ring-0 bg-surface-container-lowest" name="backup_strat" type="radio"/>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Option 1: Retain Full Backup to Dedicated Drive</span>
+</div>
+<span class="font-label-badge text-label-badge text-secondary">Safest Choice</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline pl-6">Preserves original 4K cutscenes bit-for-bit to allow one-click instant rollbacks.</p>
+<!-- Path Selector -->
+<div class="pl-6 flex items-center gap-2 mt-1">
+<div class="flex-1 bg-surface-container-lowest text-outline font-label-data-md text-label-data-md text-[12px] px-2.5 py-1 rounded border border-white/5 truncate">
+                D:\ApexDrive_Backups\Starfield_Videos_v1.0
+              </div>
+<button class="px-2 py-1 rounded bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-badge text-label-badge border border-white/10">
+                Browse
+              </button>
+</div>
+</label>
+<!-- Radio 2: Temporary cache with post-testing prompt -->
+<label class="p-3 rounded-lg bg-surface-container border border-white/5 hover:border-outline-variant cursor-pointer flex flex-col gap-1.5 transition-all">
+<div class="flex items-center gap-2.5">
+<input class="text-primary-container focus:ring-0 bg-surface-container-lowest" name="backup_strat" type="radio"/>
+<span class="font-body-md text-body-md font-semibold text-on-surface">Option 2: Retain in Cache with Post-Test Deletion</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline pl-6">Maintains cache for 7 days or until you confirm game stability inside Starfield session.</p>
+</label>
+<!-- Radio 3: Overwrite permanently with alert badge -->
+<label class="p-3 rounded-lg bg-error-container/10 border border-error/30 hover:border-error cursor-pointer flex flex-col gap-1.5 transition-all">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<input class="text-error focus:ring-0 bg-surface-container-lowest" name="backup_strat" type="radio"/>
+<span class="font-body-md text-body-md font-semibold text-error">Option 3: In-Place Replacement (No Retained Backup)</span>
+</div>
+<span class="font-label-badge text-label-badge bg-error-container text-error px-1.5 py-0.5 rounded">High Risk</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant pl-6">
+              Overwrites source video assets immediately. If Steam cloud sync triggers or game update drops, integrity verify will redownload the full 24 GB cutscene pack.
+            </p>
+</label>
+</div>
+<!-- PANEL 5: Space Breakdown Indicator -->
+<div class="bg-surface-container-low rounded-xl border border-white/5 p-space-lg flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]" data-icon="pie_chart">pie_chart</span>
+              Disk Allocation &amp; Space Reclaim
+            </h2>
+<span class="font-label-badge text-label-badge text-outline">Target Drive C: NVMe</span>
+</div>
+<!-- Breakdown Visual Bar Gauge -->
+<div class="w-full bg-surface-container-lowest h-3 rounded-full flex overflow-hidden p-0.5 gap-0.5">
+<!-- Recovered space -->
+<div class="bg-secondary h-full rounded-l-full" style="width: 58%;" title="Net Disk Space Recovered"></div>
+<!-- Backup footprint -->
+<div class="bg-tertiary-container h-full" style="width: 28%;" title="Dedicated Backup"></div>
+<!-- Temp encode staging -->
+<div class="bg-primary-container h-full rounded-r-full" style="width: 14%;" title="Temp Staging Buffer"></div>
+</div>
+<!-- Stat Counters Bento -->
+<div class="grid grid-cols-3 gap-2 text-center pt-1">
+<div class="bg-surface-container p-2 rounded-lg border border-white/5">
+<span class="font-label-badge text-label-badge text-outline block">Temp Staging</span>
+<span class="font-label-data-md text-label-data-md text-primary mt-0.5 block">14.0 GB</span>
+</div>
+<div class="bg-surface-container p-2 rounded-lg border border-white/5">
+<span class="font-label-badge text-label-badge text-outline block">Backup Size</span>
+<span class="font-label-data-md text-label-data-md text-tertiary mt-0.5 block">24.0 GB</span>
+</div>
+<div class="bg-surface-container p-2 rounded-lg border border-secondary/20 bg-secondary/5">
+<span class="font-label-badge text-label-badge text-secondary block">Net Recovered</span>
+<span class="font-label-data-lg text-label-data-lg text-secondary mt-0.5 block">+18.6 GB</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- BOTTOM ACTIONS STICKY BAR -->
+<div class="mt-auto bg-surface-container-low border border-white/10 rounded-xl p-space-md flex items-center justify-between shadow-2xl">
+<div class="flex items-center gap-3">
+<button class="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-body-md text-body-md flex items-center gap-2 border border-white/5 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-[16px] text-tertiary" data-icon="settings_backup_restore">settings_backup_restore</span>
+<span>Restore Originals from Backup</span>
+</button>
+<span class="font-body-sm text-body-sm text-outline">Last archive: 0 backups on system</span>
+</div>
+<div class="flex items-center gap-space-md">
+<button class="px-space-lg py-2 rounded-lg bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-body-md text-body-md flex items-center gap-2 border border-white/10 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="play_circle">play_circle</span>
+<span>Generate Preview Sample</span>
+</button>
+<button class="px-space-xl py-2 rounded-lg bg-primary-container hover:bg-primary-container/90 text-on-primary-container font-headline-sm text-headline-sm font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(255,98,0,0.35)] active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="rocket_launch">rocket_launch</span>
+<span>Start Video Conversion</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Interactive State Scripts for Profile Switching -->
+<script>
+    const tabRec = document.getElementById('tab-profile-rec');
+    const tabCustom = document.getElementById('tab-profile-custom');
+
+    tabRec.addEventListener('click', () => {
+      tabRec.className = "px-space-md py-1 rounded bg-primary-container text-on-primary-container font-label-badge text-label-badge font-bold transition-all shadow-[0_0_10px_rgba(255,98,0,0.3)]";
+      tabCustom.className = "px-space-md py-1 rounded text-outline hover:text-on-surface font-label-badge text-label-badge transition-all";
+    });
+
+    tabCustom.addEventListener('click', () => {
+      tabCustom.className = "px-space-md py-1 rounded bg-surface-container-high text-on-surface font-label-badge text-label-badge font-bold transition-all border border-white/10";
+      tabRec.className = "px-space-md py-1 rounded text-outline hover:text-on-surface font-label-badge text-label-badge transition-all";
+    });
+  </script>
+</body></html>
