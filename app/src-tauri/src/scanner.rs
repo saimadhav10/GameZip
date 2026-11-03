@@ -206,6 +206,69 @@ mod tests {
 
     #[cfg(windows)]
     #[test]
+    fn lzx_roundtrip_preserves_contents_and_scan_accounting() {
+        use std::{os::windows::ffi::OsStrExt, process::Command};
+        use windows_sys::Win32::Storage::FileSystem::{
+            FILE_PROVIDER_COMPRESSION_LZX, WOF_FILE_COMPRESSION_INFO_V1, WOF_PROVIDER_FILE,
+            WofIsExternalFile,
+        };
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("fixture with spaces [1].pak");
+        let original = b"GameZip disposable compression fixture.".repeat(80000);
+        fs::write(&path, &original).unwrap();
+        let before = scan(dir.path(), &AtomicBool::new(false), |_, _| {}).unwrap();
+        let compact = std::path::PathBuf::from(std::env::var_os("SystemRoot").unwrap())
+            .join("System32/compact.exe");
+        for compress in [true, false] {
+            let output = Command::new(&compact)
+                .args(if compress {
+                    ["/C", "/EXE:LZX", "/A"]
+                } else {
+                    ["/U", "/EXE", "/A"]
+                })
+                .arg(&path)
+                .output()
+                .unwrap();
+            assert!(output.status.success(), "{:?}", output);
+            let wide: Vec<u16> = path.as_os_str().encode_wide().chain(Some(0)).collect();
+            let mut external = 0;
+            let mut provider = 0;
+            let mut info = WOF_FILE_COMPRESSION_INFO_V1::default();
+            let mut size = std::mem::size_of_val(&info) as u32;
+            // All output pointers are correctly sized and valid for the call.
+            assert!(
+                unsafe {
+                    WofIsExternalFile(
+                        wide.as_ptr(),
+                        &mut external,
+                        &mut provider,
+                        (&mut info as *mut WOF_FILE_COMPRESSION_INFO_V1).cast(),
+                        &mut size,
+                    )
+                } >= 0
+            );
+            assert_eq!(external != 0, compress);
+            if compress {
+                assert_eq!(provider, WOF_PROVIDER_FILE);
+                assert_eq!(info.Algorithm, FILE_PROVIDER_COMPRESSION_LZX);
+            }
+            assert_eq!(fs::read(&path).unwrap(), original);
+            let report = scan(dir.path(), &AtomicBool::new(false), |_, _| {}).unwrap();
+            assert_eq!(report.files, 1);
+            assert_eq!(report.skipped, 0);
+            assert_eq!(report.allocation_unknown, 0);
+            assert_eq!(report.logical_bytes, before.logical_bytes);
+            if compress {
+                assert!(report.allocated_bytes > 0);
+                assert!(report.allocated_bytes < before.allocated_bytes);
+            } else {
+                assert_eq!(report.allocated_bytes, before.allocated_bytes);
+            }
+        }
+    }
+
+    #[cfg(windows)]
+    #[test]
     fn ordinary_file_disk_usage_includes_cluster_slack() {
         let dir = tempfile::tempdir().unwrap();
         // Larger than an NTFS resident record, but not a multiple of a sector.

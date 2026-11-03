@@ -162,10 +162,7 @@ fn start_scan(
             }
         }
         work.finished_at = Some(now());
-        if let Err(e) = engine.db.save_job(&work) {
-            work.state = "failed".into();
-            work.message = format!("Could not save job result: {e}");
-        }
+        work = engine.db.finish_job(work);
         if let Ok(mut active) = engine.active.lock() {
             *active = None;
         }

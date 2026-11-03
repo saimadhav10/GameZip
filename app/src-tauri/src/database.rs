@@ -10,6 +10,9 @@ use std::{
 
 pub struct Database {
     connection: Mutex<Connection>,
+    // Preserve terminal state for this session if SQLite cannot write it.
+    // Otherwise polling would keep reporting a completed worker as running.
+    unsaved_jobs: Mutex<Vec<Job>>,
     pub path: PathBuf,
 }
 
@@ -22,6 +25,7 @@ impl Database {
             .map_err(|e| e.to_string())?;
         let db = Self {
             connection: Mutex::new(connection),
+            unsaved_jobs: Mutex::new(Vec::new()),
             path,
         };
         for mut job in db.jobs()? {
@@ -149,6 +153,20 @@ impl Database {
         Ok(())
     }
 
+    pub fn finish_job(&self, mut job: Job) -> Job {
+        if let Err(error) = self.save_job(&job) {
+            job.state = "failed".into();
+            job.message = format!("Could not save job result: {error}");
+            let mut unsaved = self.unsaved_jobs.lock().unwrap_or_else(|e| e.into_inner());
+            unsaved.retain(|previous| previous.id != job.id);
+            unsaved.push(job.clone());
+            if unsaved.len() > 100 {
+                unsaved.remove(0);
+            }
+        }
+        job
+    }
+
     pub fn jobs(&self) -> Result<Vec<Job>, String> {
         let connection = self.connection.lock().map_err(|e| e.to_string())?;
         let mut query = connection
@@ -157,12 +175,26 @@ impl Database {
         let records = query
             .query_map([], |row| row.get::<_, String>(0))
             .map_err(|e| e.to_string())?;
-        records
+        let mut jobs: Vec<Job> = records
             .map(|row| {
                 let json = row.map_err(|e| e.to_string())?;
                 serde_json::from_str(&json).map_err(|e| e.to_string())
             })
-            .collect()
+            .collect::<Result<_, String>>()?;
+        for job in self
+            .unsaved_jobs
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .iter()
+        {
+            if let Some(saved) = jobs.iter_mut().find(|saved| saved.id == job.id) {
+                *saved = job.clone();
+            } else {
+                jobs.insert(0, job.clone());
+            }
+        }
+        jobs.truncate(100);
+        Ok(jobs)
     }
 }
 
@@ -198,6 +230,45 @@ mod tests {
         assert!(root.join("data/file.pak").exists());
         assert!(db.games().unwrap().is_empty());
     }
+    #[test]
+    fn failed_final_write_reports_terminal_state_instead_of_a_phantom_active_job() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("library.sqlite");
+        let db = Database::open(path.clone()).unwrap();
+        let mut job = Job {
+            id: "job".into(),
+            game_id: "game".into(),
+            game_name: "Test".into(),
+            state: "running".into(),
+            files: 2,
+            logical_bytes: 100,
+            message: "Scanning".into(),
+            started_at: 1,
+            finished_at: None,
+        };
+        db.save_job(&job).unwrap();
+        db.connection
+            .lock()
+            .unwrap()
+            .execute_batch("PRAGMA query_only=ON")
+            .unwrap();
+        job.state = "completed".into();
+        job.finished_at = Some(2);
+        let finished = db.finish_job(job);
+        assert_eq!(finished.state, "failed");
+        let visible = db.jobs().unwrap();
+        assert_eq!(visible.len(), 1);
+        assert_eq!(visible[0].state, "failed");
+        assert!(visible[0].message.contains("Could not save job result"));
+        assert_eq!(visible[0].finished_at, Some(2));
+        drop(db);
+        // Restart still reconciles the durable unfinished record honestly.
+        assert_eq!(
+            Database::open(path).unwrap().jobs().unwrap()[0].state,
+            "interrupted"
+        );
+    }
+
     #[test]
     fn reopening_marks_unfinished_jobs_interrupted() {
         let temp = tempfile::tempdir().unwrap();

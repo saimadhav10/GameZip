@@ -15,6 +15,7 @@ Updated: 2026-11-03. The analyser milestone is implemented and validated locally
 - **Videos:** A small tested set of games/formats, previews, backups, and restoration.
 - **Backups:** Mandatory local originals backup for video conversion. Users choose location and retention, with a minimum of seven days and automatic deletion at expiry. No-backup mode is excluded. Proposed default retention: seven days.
 - **Window close:** Continue active jobs in the system tray when the window is closed.
+- **Compression stopping:** Prioritise a running game. Refuse to start while a game process is detected; stop after the current file if it launches. Cancel or explicit tray Quit also stops after the current file; completed files remain compressed and usable. The user delegated this choice on 2026-11-03.
 - **UI:** Keep the supplied style; minimise visible information and show only what is needed.
 
 ## Workspace and references

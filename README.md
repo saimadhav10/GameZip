@@ -54,6 +54,6 @@ Browser tests use installed Microsoft Edge and mock only the native command boun
 
 ## Storage and scan limits
 
-SQLite lives in the app's local application-data directory, visible under Settings. No cloud service is used. Read failures and skipped reparse points (including junctions and WOF-compressed files in this milestone) are reported. Hard links are counted once within a game; links shared between separate game roots can contribute to both games' totals. Numbers describe the last scan, not continuous filesystem monitoring. Archive internals are not inspected.
+SQLite lives in the app's local application-data directory, visible under Settings. No cloud service is used. Read failures and skipped reparse points are reported. LZX-compressed files are measured through Windows' normal file APIs and covered by a round-trip fixture test. Hard links are counted once within a game; links shared between separate game roots can contribute to both games' totals. Numbers describe the last scan, not continuous filesystem monitoring. Archive internals are not inspected.
 
 UI references remain untouched under `uiassts/`. Game artwork is not downloaded; library covers use locally generated lettermarks. Fonts and icons are bundled locally.
