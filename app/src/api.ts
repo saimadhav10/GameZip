@@ -1,6 +1,13 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import type { AppInfo, Candidate, Discovery, Game, Job } from "./types";
+import type {
+  AppInfo,
+  Candidate,
+  Discovery,
+  Game,
+  Job,
+  CompressionPreview,
+} from "./types";
 
 export const desktop = isTauri();
 export const api = {
@@ -11,6 +18,9 @@ export const api = {
   add: (candidate: Candidate) => invoke<Game>("add_game", { ...candidate }),
   remove: (id: string) => invoke<void>("remove_game", { id }),
   scan: (id: string) => invoke<Job>("start_scan", { id }),
+  prepareCompression: (id: string, operation: "compress" | "decompress") =>
+    invoke<CompressionPreview>("prepare_compression", { id, operation }),
+  compress: (token: string) => invoke<Job>("start_compression", { token }),
   cancel: (id: string) => invoke<void>("cancel_scan", { id }),
   openFolder: (id: string) => invoke<void>("open_game_folder", { id }),
   pickFolder: () =>

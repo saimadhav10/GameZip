@@ -1575,3 +1575,29 @@ input[type="checkbox"] {
     transition: none !important;
   }
 }
+.detail-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.compression-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 0;
+}
+.compression-summary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 22px 0;
+}
+.compression-summary strong {
+  font-size: 24px;
+}
+.compression-summary span {
+  color: var(--muted);
+  align-self: center;
+}

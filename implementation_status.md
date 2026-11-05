@@ -1,6 +1,6 @@
 # Implementation checkpoint
 
-Updated: 2026-11-03. Analyser milestone validated; next work: compression groundwork and account feasibility.
+Updated: 2026-11-05. Analyser and compression milestones validated locally; next work: Cyberpunk video compatibility and account feasibility.
 
 ## Implemented and validated
 
@@ -9,21 +9,25 @@ Updated: 2026-11-03. Analyser milestone validated; next work: compression ground
 - Read-only scanning with file counts, logical/allocated sizes, distribution donut, and largest files.
 - Hard-link deduplication within roots, overlap rejection, skipped junctions/locked files, cancellation, interrupted-scan history.
 - Window-close-to-tray, reopen, explicit Quit, and single-instance handling.
+- LZX/decompression preparation and minimal confirmation UI, per-file Windows operations, durable recovery records, cancellation boundaries, and measured results.
+- Running-game checks before preparation/start/each file; no game process is terminated. Compact runs at below-normal CPU priority.
 
 ## Validation checkpoint
 
 - Frontend production build passed.
-- Three Playwright UI flows passed at desktop and 720px widths after fixing collapsed navigation labels.
-- Thirteen Rust tests passed, including Windows locked files, junctions, hard links, cluster allocation, discovery, persistence, interruption recovery, failed final writes, and an actual LZX compression/decompression round trip on generated files.
+- Six Playwright UI flows passed, including compression, running-game errors, low-space gating, and 720px layout checks; screenshots reviewed.
+- Eighteen Rust tests passed, including actual LZX/decompression, unchanged contents, allocation measurements, running-process detection, changed/shared/locked files, cancellation, and failure to write the file journal before mutation.
 - Clippy passed with warnings denied; Rust and frontend formatting passed.
-- Debug desktop executable built and native WebView2 smoke passed: real folder registration, scan, saved results, rendered details, non-destructive removal, and unchanged fixture bytes. All test files and the profile were isolated under `.local/`.
-- Initial release compilation passed. The debug build includes the latest allocation fix; rebuild release before distributing it. Installer, physical tray interactions, and clean Windows 10/11 machines are not yet validated.
+- Latest debug desktop executable built and native WebView2 smoke passed: real folder registration, scan, compression/decompression via the UI, measured savings, non-destructive removal, and unchanged fixture bytes. All test files and the profile were isolated under `.local/`.
+- Release executable is from the earlier analyser build; rebuild before distributing it. Installer, physical tray interactions, forced shutdown during compact, real low-space volumes, and clean Windows 10/11 machines remain unvalidated. GitHub CI status could not be retrieved through the available connector; gh is not installed.
 
 ## Resume here
 
-1. Continue compression planning/implementation using disposable fixtures only. Validate LZX/decompression semantics, running-game checks, cancellation boundaries, persistence, and actual disk accounting before enabling it.
+1. Inspect the user's installed Cyberpunk 2077 read-only for video compatibility. It was found through the uninstall registry at `S:\cb\Cyberpunk 2077`. Never modify real game files during automated tests. No game/build is approved for video replacement yet.
 2. LZX fixture verification confirmed that Windows exposes WOF files through ordinary file APIs with the correct allocated size. The scanner includes them without following junctions. Do not assume WOF files are always visible as reparse points; validate through WofIsExternalFile.
 3. Failed final SQLite writes now retain an in-memory failed result, preventing a phantom running job. A restart reconciles the durable record as interrupted.
-4. Investigate provider sign-in without a GameZip backend. Video game profiles and restoration conflict policies remain unresolved; do not guess.
+4. Video backup lifecycle approved on 2026-11-05: retention starts after successful conversion; incomplete recovery copies remain; deletion is postponed during a restore. Minimum seven days, user-selected location/duration. Restore conflict behavior and tested codecs/profiles remain unresolved.
+5. Investigate provider sign-in without a GameZip backend. Epic requires product/client setup and brand review for public users; no credentials or product configuration have been supplied. Steam's documented OpenID flow targets websites; a local-only desktop callback still needs validation.
+6. Compression limitations are in README.md: local NTFS, classic Windows path lengths/names, no shared links or unsupported compression. If extending them, validate on disposable fixtures first.
 
 Use `scripts/desktop.ps1` for development/builds; Rust was installed under the user's default `.cargo/bin` directory without changing system PATH. The heartbeat `continue-gamezip-implementation` is active hourly for requested continuation after usage-limit interruptions.

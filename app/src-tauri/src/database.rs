@@ -23,6 +23,9 @@ impl Database {
             CREATE TABLE IF NOT EXISTS games(id TEXT PRIMARY KEY, name TEXT NOT NULL, path TEXT NOT NULL UNIQUE, launcher TEXT NOT NULL, scan TEXT);
             CREATE TABLE IF NOT EXISTS jobs(id TEXT PRIMARY KEY, payload TEXT NOT NULL);")
             .map_err(|e| e.to_string())?;
+        connection.execute_batch("CREATE TABLE IF NOT EXISTS compression_runs(job_id TEXT PRIMARY KEY, plan TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS file_steps(job_id TEXT NOT NULL, ordinal INTEGER NOT NULL, state TEXT NOT NULL, before_bytes INTEGER, after_bytes INTEGER, message TEXT, PRIMARY KEY(job_id,ordinal));")
+            .map_err(|e| e.to_string())?;
         let db = Self {
             connection: Mutex::new(connection),
             unsaved_jobs: Mutex::new(Vec::new()),
@@ -31,7 +34,11 @@ impl Database {
         for mut job in db.jobs()? {
             if job.state == "running" || job.state == "stopping" {
                 job.state = "interrupted".into();
-                job.message = "GameZip closed before this scan finished. Run a new scan to refresh its results.".into();
+                job.message = if job.operation == "scan" {
+                    "GameZip closed before this scan finished. Run a new scan to refresh its results."
+                } else {
+                    "GameZip closed before this job finished. Analyse the game, then prepare the operation again; current file states will be checked."
+                }.into();
                 job.finished_at = Some(crate::model::now());
                 db.save_job(&job)?;
             }
@@ -153,6 +160,77 @@ impl Database {
         Ok(())
     }
 
+    pub fn begin_compression(
+        &self,
+        job: &Job,
+        plan: &crate::compression::Plan,
+    ) -> Result<(), String> {
+        let mut connection = self.connection.lock().map_err(|e| e.to_string())?;
+        let transaction = connection.transaction().map_err(|e| e.to_string())?;
+        transaction
+            .execute(
+                "INSERT INTO jobs(id,payload) VALUES(?1,?2)",
+                params![
+                    job.id,
+                    serde_json::to_string(job).map_err(|e| e.to_string())?
+                ],
+            )
+            .map_err(|e| e.to_string())?;
+        transaction
+            .execute(
+                "INSERT INTO compression_runs(job_id,plan) VALUES(?1,?2)",
+                params![
+                    job.id,
+                    serde_json::to_string(plan).map_err(|e| e.to_string())?
+                ],
+            )
+            .map_err(|e| e.to_string())?;
+        {
+            let mut insert = transaction
+                .prepare("INSERT INTO file_steps(job_id,ordinal,state) VALUES(?1,?2,'pending')")
+                .map_err(|e| e.to_string())?;
+            for index in 0..plan.files.len() {
+                insert
+                    .execute(params![job.id, index as i64])
+                    .map_err(|e| e.to_string())?;
+            }
+        }
+        // Never display a pre-modification scan as a current result after a crash.
+        transaction
+            .execute("UPDATE games SET scan=NULL WHERE id=?1", [&job.game_id])
+            .map_err(|e| e.to_string())?;
+        transaction.commit().map_err(|e| e.to_string())
+    }
+
+    pub fn file_step(
+        &self,
+        job_id: &str,
+        index: usize,
+        state: &str,
+        before: Option<u64>,
+        after: Option<u64>,
+        message: &str,
+    ) -> Result<(), String> {
+        let before = before
+            .map(i64::try_from)
+            .transpose()
+            .map_err(|e| e.to_string())?;
+        let after = after
+            .map(i64::try_from)
+            .transpose()
+            .map_err(|e| e.to_string())?;
+        let changed = self.connection.lock().map_err(|e| e.to_string())?.execute(
+            "UPDATE file_steps SET state=?1,before_bytes=?2,after_bytes=?3,message=?4 WHERE job_id=?5 AND ordinal=?6",
+            params![state,before,after,message,job_id,index as i64],
+        ).map_err(|e| e.to_string())?;
+        if changed != 1 {
+            return Err(
+                "Cannot find the file's recovery record. No further files will be changed.".into(),
+            );
+        }
+        Ok(())
+    }
+
     pub fn finish_job(&self, mut job: Job) -> Job {
         if let Err(error) = self.save_job(&job) {
             job.state = "failed".into();
@@ -211,6 +289,59 @@ fn roots_overlap(a: &Path, b: &Path) -> bool {
 mod tests {
     use super::*;
     #[test]
+    fn failed_file_journal_write_stops_before_compression() {
+        use crate::{
+            compression::{self, Operation},
+            compression_job,
+        };
+        use std::sync::atomic::AtomicBool;
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path().join("game");
+        std::fs::create_dir(&root).unwrap();
+        let contents = b"GameZip journal fixture ".repeat(100000);
+        std::fs::write(root.join("data.pak"), &contents).unwrap();
+        let db_path = temp.path().join("jobs.sqlite");
+        let db = Database::open(db_path.clone()).unwrap();
+        let game = db.add("Fixture", root.to_str().unwrap(), "Manual").unwrap();
+        let cancel = AtomicBool::new(false);
+        let plan = compression::prepare(&root, Operation::Compress, &cancel).unwrap();
+        let job = Job {
+            id: "journal-fixture".into(),
+            game_id: game.id,
+            game_name: game.name,
+            operation: "compress".into(),
+            state: "running".into(),
+            total_files: Some(1),
+            ..Default::default()
+        };
+        db.begin_compression(&job, &plan).unwrap();
+        db.connection
+            .lock()
+            .unwrap()
+            .execute_batch("PRAGMA query_only=ON")
+            .unwrap();
+        let finished = compression_job::run(&db, &plan, job, &cancel, |_| {});
+        assert_eq!(finished.state, "failed");
+        assert_eq!(finished.files, 0);
+        assert_eq!(std::fs::read(root.join("data.pak")).unwrap(), contents);
+        let still_plain = compression::prepare(&root, Operation::Compress, &cancel).unwrap();
+        assert_eq!(still_plain.files.len(), 1);
+        drop(db);
+        let recovered = Database::open(db_path).unwrap();
+        assert_eq!(recovered.jobs().unwrap()[0].state, "interrupted");
+        let state: String = recovered
+            .connection
+            .lock()
+            .unwrap()
+            .query_row(
+                "SELECT state FROM file_steps WHERE job_id='journal-fixture'",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert_eq!(state, "pending");
+    }
+    #[test]
     fn library_persists_rejects_overlaps_and_removal_preserves_files() {
         let temp = tempfile::tempdir().unwrap();
         let root = temp.path().join("game");
@@ -245,6 +376,8 @@ mod tests {
             message: "Scanning".into(),
             started_at: 1,
             finished_at: None,
+            operation: "scan".into(),
+            ..Default::default()
         };
         db.save_job(&job).unwrap();
         db.connection
@@ -284,6 +417,8 @@ mod tests {
             message: "Scanning".into(),
             started_at: 1,
             finished_at: None,
+            operation: "scan".into(),
+            ..Default::default()
         })
         .unwrap();
         drop(db);

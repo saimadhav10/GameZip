@@ -1,3 +1,5 @@
+pub mod compression;
+mod compression_job;
 mod database;
 mod discovery;
 mod filesystem;
@@ -8,7 +10,7 @@ use database::Database;
 use model::{Game, Job, now};
 use std::sync::{
     Arc, Mutex,
-    atomic::{AtomicBool, Ordering},
+    atomic::{AtomicBool, AtomicU64, Ordering},
 };
 use tauri::{
     Emitter, Manager, State,
@@ -26,6 +28,13 @@ struct Engine {
     db: Database,
     active: Mutex<Option<Active>>,
     quitting: AtomicBool,
+    prepared: Mutex<Option<Prepared>>,
+    preparation_generation: AtomicU64,
+}
+struct Prepared {
+    token: String,
+    game_id: String,
+    plan: compression::Plan,
 }
 struct AppState(Arc<Engine>);
 
@@ -36,7 +45,19 @@ fn list_games(state: State<'_, AppState>) -> Result<Vec<Game>, String> {
 
 #[tauri::command]
 fn list_jobs(state: State<'_, AppState>) -> Result<Vec<Job>, String> {
-    state.0.db.jobs()
+    let active = state.0.active.lock().map_err(|e| e.to_string())?;
+    let mut jobs = state.0.db.jobs()?;
+    if let Some(active) = active
+        .as_ref()
+        .filter(|active| active.cancel.load(Ordering::Relaxed))
+        && let Some(job) = jobs
+            .iter_mut()
+            .find(|job| job.id == active.id && job.state == "running")
+    {
+        job.state = "stopping".into();
+        job.message = "Stopping after the current file".into();
+    }
+    Ok(jobs)
 }
 
 #[tauri::command]
@@ -87,6 +108,96 @@ fn app_info(state: State<'_, AppState>) -> serde_json::Value {
 }
 
 #[tauri::command]
+async fn prepare_compression(
+    id: String,
+    operation: compression::Operation,
+    state: State<'_, AppState>,
+) -> Result<serde_json::Value, String> {
+    let engine = state.0.clone();
+    let generation = engine.preparation_generation.fetch_add(1, Ordering::SeqCst) + 1;
+    tauri::async_runtime::spawn_blocking(move || {
+        if engine.active.lock().map_err(|e| e.to_string())?.is_some() { return Err("Wait for the current job to finish.".into()); }
+        let game = engine.db.game(&id)?;
+        let root = filesystem::root(&game.path)?;
+        let plan = compression::prepare(&root, operation, &AtomicBool::new(false))?;
+        let token = uuid::Uuid::new_v4().to_string();
+        let preview = serde_json::json!({"token":token, "operation":operation, "files":plan.files.len(), "skipped":plan.skipped, "allocatedBytes":plan.allocated, "freeBytes":plan.free, "requiredFreeBytes":plan.required_free});
+        let mut prepared = engine.prepared.lock().map_err(|e| e.to_string())?;
+        if engine.preparation_generation.load(Ordering::SeqCst) != generation { return Err("Preparation was replaced by a newer request.".into()); }
+        *prepared = Some(Prepared { token, game_id: id, plan });
+        Ok(preview)
+    }).await.map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+fn start_compression(
+    token: String,
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+) -> Result<Job, String> {
+    let engine = state.0.clone();
+    let mut active = engine.active.lock().map_err(|e| e.to_string())?;
+    if active.is_some() || engine.quitting.load(Ordering::Relaxed) {
+        return Err("Wait for the current job to finish.".into());
+    }
+    let mut prepared = engine.prepared.lock().map_err(|e| e.to_string())?;
+    let ready = prepared
+        .as_ref()
+        .filter(|p| p.token == token)
+        .ok_or("Preparation expired. Check the files again.")?;
+    let game = engine.db.game(&ready.game_id)?;
+    if filesystem::root(&game.path)? != ready.plan.root {
+        return Err("The installation folder changed. Check the files again.".into());
+    }
+    compression::ensure_game_stopped(&ready.plan.root)?;
+    if ready.plan.files.is_empty() {
+        return Err("No eligible files need this operation.".into());
+    }
+    if compression::free_space(&ready.plan.root)? < ready.plan.required_free {
+        return Err("Not enough free space. Free some space and check the files again.".into());
+    }
+    let job = Job {
+        id: uuid::Uuid::new_v4().to_string(),
+        game_id: game.id.clone(),
+        game_name: game.name,
+        state: "running".into(),
+        operation: match ready.plan.operation {
+            compression::Operation::Compress => "compress",
+            compression::Operation::Decompress => "decompress",
+        }
+        .into(),
+        total_files: Some(ready.plan.files.len() as u64),
+        started_at: now(),
+        message: "Preparing to process files".into(),
+        ..Default::default()
+    };
+    engine.db.begin_compression(&job, &ready.plan)?;
+    let ready = prepared.take().unwrap();
+    let cancel = Arc::new(AtomicBool::new(false));
+    *active = Some(Active {
+        id: job.id.clone(),
+        game_id: game.id,
+        cancel: cancel.clone(),
+    });
+    drop(active);
+    drop(prepared);
+    let work = job.clone();
+    std::thread::spawn(move || {
+        let finished = compression_job::run(&engine.db, &ready.plan, work, &cancel, |job| {
+            let _ = app.emit("scan-progress", job);
+        });
+        if let Ok(mut active) = engine.active.lock() {
+            *active = None;
+        }
+        let _ = app.emit("scan-progress", &finished);
+        if engine.quitting.load(Ordering::Relaxed) {
+            app.exit(0);
+        }
+    });
+    Ok(job)
+}
+
+#[tauri::command]
 fn start_scan(
     id: String,
     app: tauri::AppHandle,
@@ -95,7 +206,7 @@ fn start_scan(
     let engine = state.0.clone();
     let mut active = engine.active.lock().map_err(|e| e.to_string())?;
     if active.is_some() {
-        return Err("A scan is already running. Wait for it to finish or cancel it.".into());
+        return Err("A job is already running. Wait for it to finish or cancel it.".into());
     }
     if engine.quitting.load(Ordering::Relaxed) {
         return Err("GameZip is closing.".into());
@@ -113,6 +224,8 @@ fn start_scan(
         message: "Reading game files".into(),
         started_at: now(),
         finished_at: None,
+        operation: "scan".into(),
+        ..Default::default()
     };
     engine.db.save_job(&job)?;
     *active = Some(Active {
@@ -180,7 +293,7 @@ fn cancel_scan(id: String, state: State<'_, AppState>) -> Result<(), String> {
     let job = active
         .as_ref()
         .filter(|a| a.id == id)
-        .ok_or("This scan is no longer running.")?;
+        .ok_or("This job is no longer running.")?;
     job.cancel.store(true, Ordering::Relaxed);
     Ok(())
 }
@@ -216,6 +329,8 @@ pub fn run() {
                 db,
                 active: Mutex::new(None),
                 quitting: AtomicBool::new(false),
+                prepared: Mutex::new(None),
+                preparation_generation: AtomicU64::new(0),
             })));
             let open = MenuItem::with_id(app, "open", "Open GameZip", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit GameZip", true, None::<&str>)?;
@@ -265,7 +380,9 @@ pub fn run() {
             start_scan,
             cancel_scan,
             open_game_folder,
-            app_info
+            app_info,
+            prepare_compression,
+            start_compression
         ])
         .run(tauri::generate_context!())
         .expect("GameZip could not start");

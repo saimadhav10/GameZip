@@ -1,6 +1,6 @@
 # GameZip
 
-A local Windows game storage analyser, built with Tauri, React, Rust, and SQLite.
+A local Windows game storage analyser and LZX compressor, built with Tauri, React, Rust, and SQLite.
 
 ## Current build
 
@@ -8,8 +8,10 @@ A local Windows game storage analyser, built with Tauri, React, Rust, and SQLite
 - Inspect allocated disk usage, logical size, file distribution, and the 100 largest files.
 - Keep a local library and scan history; cancel scans without replacing previous results.
 - Continue scanning in the system tray when the window closes.
+- Compress eligible files with LZX, decompress them, and view measured changes in Jobs.
+- Check running game processes and free space; stop after the current file when cancelling, quitting, or detecting a game launch.
 
-This is the analyser milestone. Compression, video conversion/backups, and account connections are not enabled yet. Scanning never modifies game files. See [project_plan.md](project_plan.md) for the agreed scope and [implementation_status.md](implementation_status.md) for the implementation checkpoint.
+The analyser and compression milestones are available. Video conversion/backups and account connections are not enabled yet. Scanning never modifies game files. See [project_plan.md](project_plan.md) for the agreed scope and [implementation_status.md](implementation_status.md) for the implementation checkpoint.
 
 ## Develop on Windows
 
@@ -57,3 +59,11 @@ Browser tests use installed Microsoft Edge and mock only the native command boun
 SQLite lives in the app's local application-data directory, visible under Settings. No cloud service is used. Read failures and skipped reparse points are reported. LZX-compressed files are measured through Windows' normal file APIs and covered by a round-trip fixture test. Hard links are counted once within a game; links shared between separate game roots can contribute to both games' totals. Numbers describe the last scan, not continuous filesystem monitoring. Archive internals are not inspected.
 
 UI references remain untouched under `uiassts/`. Game artwork is not downloaded; library covers use locally generated lettermarks. Fonts and icons are bundled locally.
+
+## Compression limits
+
+Compression operates on individual files on local NTFS volumes. This build excludes paths of 260 characters or more, names that Windows would normalise, hard-linked/shared files, links, encrypted/read-only/sparse files, existing NTFS compression, and non-LZX WOF compression. Decompress only targets LZX files. A conservative space reserve is checked before starting and before each file.
+
+Process detection checks accessible executable paths inside the game folder; protected processes and launchers outside that folder may not be identifiable. Keep the game and its updater closed. GameZip never terminates game processes. It runs `compact.exe` without a window at below-normal CPU priority, finishing the current file before stopping.
+
+Each file has a local recovery record before and after modification. Interrupted jobs are not automatically replayed; prepare again to inspect live file states. A cancelled or failed job clears the old scan until the game is analysed again. Completed jobs refresh the scan. Savings in Jobs describe processed files for that job, not a cumulative lifetime total.

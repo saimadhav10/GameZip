@@ -1,8 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 
 // Only the native boundary is mocked. Test data is never bundled into the app.
-async function native(page: Page) {
-  await page.addInitScript(() => {
+async function native(page: Page, scenario = "normal") {
+  await page.addInitScript((scenario) => {
     const w = window as unknown as {
       isTauri: boolean;
       __TAURI_INTERNALS__: {
@@ -16,6 +16,7 @@ async function native(page: Page) {
     const games: Record<string, unknown>[] = [];
     const jobs: Record<string, unknown>[] = [];
     let finishAt = 0;
+    let operation = "compress";
     const scan = {
       files: 23,
       logicalBytes: 2147483648,
@@ -66,6 +67,11 @@ async function native(page: Page) {
           if (jobs[0]?.state === "running" && Date.now() >= finishAt) {
             jobs[0].state = "completed";
             jobs[0].message = "Scan complete";
+            if (jobs[0].operation === "compress") {
+              jobs[0].beforeBytes = 1073741824;
+              jobs[0].afterBytes = 536870912;
+              jobs[0].message = "Finished. 20 files changed.";
+            }
             games[0].scan = scan;
           }
           return structuredClone(jobs);
@@ -108,6 +114,47 @@ async function native(page: Page) {
             message: "Reading game files",
             startedAt: 1793680000,
             finishedAt: null,
+            operation: "scan",
+            totalFiles: null,
+            beforeBytes: 0,
+            afterBytes: 0,
+          };
+          jobs.unshift(job);
+          return job;
+        }
+        if (cmd === "prepare_compression") {
+          if (scenario === "running")
+            throw new Error(
+              "Close the game before continuing: fixture-game.exe",
+            );
+          operation = String(args.operation);
+          return {
+            token: "prepared-fixture",
+            operation,
+            files: 20,
+            skipped: 3,
+            allocatedBytes: 1073741824,
+            freeBytes: scenario === "low-space" ? 1024 : 10737418240,
+            requiredFreeBytes: 2147483648,
+          };
+        }
+        if (cmd === "start_compression") {
+          finishAt = Date.now() + 2200;
+          games[0].scan = null;
+          const job = {
+            id: `test-job-${jobs.length}`,
+            gameId: "test-game",
+            gameName: "Nebula Rift",
+            operation,
+            totalFiles: 20,
+            files: 10,
+            beforeBytes: 0,
+            afterBytes: 0,
+            logicalBytes: 1073741824,
+            state: "running",
+            message: "Processing files",
+            startedAt: 1793680000,
+            finishedAt: null,
           };
           jobs.unshift(job);
           return job;
@@ -125,8 +172,80 @@ async function native(page: Page) {
         throw new Error(`Unexpected native command: ${cmd}`);
       },
     };
-  });
+  }, scenario);
 }
+
+async function scannedGame(page: Page, scenario = "normal") {
+  await native(page, scenario);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Add games" }).first().click();
+  await page
+    .getByRole("button", { name: "Choose a folder", exact: false })
+    .click();
+  await page.getByRole("button", { name: "View details" }).click();
+  await page.getByRole("button", { name: "Analyse game" }).click();
+  await expect(
+    page.getByRole("heading", { name: "What's taking space" }),
+  ).toBeVisible();
+}
+
+test("compression preview starts a job and reports measured savings", async ({
+  page,
+}) => {
+  await scannedGame(page);
+  await page.getByRole("button", { name: "Compress", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByText("20 files", { exact: true })).toBeVisible();
+  await page.screenshot({
+    path: "test-results/compression-preview.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 720, height: 700 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
+  await page.screenshot({ path: "test-results/compression-preview-small.png" });
+  await dialog.getByRole("button", { name: "Start compression" }).click();
+  await expect(
+    page.getByText("512 MiB saved on processed files", { exact: false }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Library", exact: true }).click();
+  await page.getByRole("button", { name: "View details" }).click();
+  await page.getByRole("button", { name: "Decompress", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Start decompression" }),
+  ).toBeEnabled();
+  await page.keyboard.press("Escape");
+  await expect(dialog).not.toBeVisible();
+});
+
+test("running games block compression with an actionable message", async ({
+  page,
+}) => {
+  await scannedGame(page, "running");
+  await page.getByRole("button", { name: "Compress", exact: true }).click();
+  await expect(page.getByRole("dialog").getByRole("alert")).toContainText(
+    "Close the game",
+  );
+  await expect(
+    page.getByRole("button", { name: "Start compression" }),
+  ).toHaveCount(0);
+});
+
+test("insufficient space disables compression before starting", async ({
+  page,
+}) => {
+  await scannedGame(page, "low-space");
+  await page.getByRole("button", { name: "Compress", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Start compression" }),
+  ).toBeDisabled();
+  await expect(
+    page.getByText("This operation needs", { exact: false }),
+  ).toBeVisible();
+});
 
 test("browser preview is honest about native access", async ({ page }) => {
   await page.goto("/");

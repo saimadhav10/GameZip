@@ -22,6 +22,7 @@ import { api, activeJob, bytes, dateTime, desktop } from "./api";
 import { AddGames } from "./AddGames";
 import { GameDetails } from "./GameDetails";
 import { Modal } from "./Modal";
+import { CompressionDialog } from "./CompressionDialog";
 import type { AppInfo, Game, Job } from "./types";
 import "./App.css";
 
@@ -39,6 +40,10 @@ function App() {
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<Game | null>(null);
   const [working, setWorking] = useState(false);
+  const [compression, setCompression] = useState<{
+    game: Game;
+    operation: "compress" | "decompress";
+  } | null>(null);
   const selected = games.find((game) => game.id === selectedId);
   const running = jobs.find(activeJob);
   const reload = useCallback(async () => {
@@ -215,7 +220,12 @@ function App() {
             <button className="active-banner" onClick={() => navigate("jobs")}>
               <LoaderCircle size={17} className="spin" />
               <span>
-                Scanning <strong>{running.gameName}</strong>
+                {running.operation === "compress"
+                  ? "Compressing"
+                  : running.operation === "decompress"
+                    ? "Decompressing"
+                    : "Scanning"}{" "}
+                <strong>{running.gameName}</strong>
               </span>
               <small>{running.files.toLocaleString()} files</small>
               <ArrowRight size={16} />
@@ -236,6 +246,9 @@ function App() {
                 back={() => setSelectedId(null)}
                 openFolder={() => action(() => api.openFolder(selected.id))}
                 remove={() => setRemoving(selected)}
+                compress={(operation) =>
+                  setCompression({ game: selected, operation })
+                }
               />
             ) : (
               <>
@@ -433,7 +446,7 @@ function App() {
                   <div className="eyebrow">ACTIVITY</div>
                   <h1>A little work. More clarity.</h1>
                   <p className="muted">
-                    Scans and their results, all in one place.
+                    Jobs and their results, all in one place.
                   </p>
                 </div>
               </div>
@@ -478,9 +491,17 @@ function App() {
                         </div>
                         <p>{job.message}</p>
                         <small>
-                          {job.files.toLocaleString()} files ·{" "}
-                          {bytes(job.logicalBytes)} read ·{" "}
-                          {dateTime(job.startedAt)}
+                          {job.files.toLocaleString()}
+                          {job.totalFiles != null
+                            ? ` of ${job.totalFiles.toLocaleString()}`
+                            : ""}{" "}
+                          files ·{" "}
+                          {job.operation === "compress"
+                            ? `${bytes(Math.max(0, job.beforeBytes - job.afterBytes))} saved on processed files`
+                            : job.operation === "decompress"
+                              ? `${bytes(Math.max(0, job.afterBytes - job.beforeBytes))} added on processed files`
+                              : `${bytes(job.logicalBytes)} measured`}{" "}
+                          · {dateTime(job.startedAt)}
                         </small>
                         {activeJob(job) && (
                           <div
@@ -494,10 +515,10 @@ function App() {
                       {activeJob(job) ? (
                         <button
                           className="secondary"
-                          disabled={working}
+                          disabled={working || job.state === "stopping"}
                           onClick={() => action(() => api.cancel(job.id))}
                         >
-                          Cancel
+                          {job.state === "stopping" ? "Stopping…" : "Cancel"}
                         </button>
                       ) : (
                         games.some((g) => g.id === job.gameId) && (
@@ -550,7 +571,8 @@ function App() {
                     <h3>Keep going in the background</h3>
                     <p>
                       Closing the window keeps GameZip in the system tray. Use
-                      Quit GameZip in the tray menu to stop scanning and exit.
+                      Quit GameZip in the tray menu to finish the current file
+                      and exit.
                     </p>
                   </div>
                   <span className="tag green">Enabled</span>
@@ -560,10 +582,11 @@ function App() {
                     <ShieldCheck />
                   </span>
                   <div>
-                    <h3>Your game files stay untouched</h3>
+                    <h3>Your game comes first</h3>
                     <p>
-                      The analyser only reads files. Removing a library entry
-                      doesn't delete its installation.
+                      Compression checks for running game processes and stops
+                      after the current file if the game starts. Scanning only
+                      reads files.
                     </p>
                   </div>
                 </div>
@@ -573,7 +596,7 @@ function App() {
                   <Zap size={16} />
                   GameZip
                 </span>
-                <span>Version {info?.version ?? "0.1.0"} · Analyser</span>
+                <span>Version {info?.version ?? "0.1.0"}</span>
               </div>
             </>
           )}
@@ -588,6 +611,17 @@ function App() {
       </div>
       {adding && (
         <AddGames games={games} close={() => setAdding(false)} added={reload} />
+      )}
+      {compression && (
+        <CompressionDialog
+          game={compression.game}
+          operation={compression.operation}
+          close={() => setCompression(null)}
+          started={async () => {
+            await reload();
+            navigate("jobs");
+          }}
+        />
       )}
       {removing && (
         <Modal

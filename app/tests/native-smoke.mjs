@@ -10,7 +10,7 @@ assert(
 );
 const fixture = path.join(root, "Fixture Game");
 await mkdir(fixture, { recursive: true });
-await writeFile(path.join(fixture, "content.pak"), Buffer.alloc(8192, 1));
+await writeFile(path.join(fixture, "content.pak"), Buffer.alloc(819200, 1));
 await writeFile(path.join(fixture, "intro.mp4"), Buffer.alloc(5001, 2));
 let browser;
 for (let attempt = 0; attempt < 40; attempt++) {
@@ -62,7 +62,7 @@ try {
     (item) => item.id === game.id,
   );
   assert.equal(saved.scan.files, 2);
-  assert.equal(saved.scan.logicalBytes, 13193);
+  assert.equal(saved.scan.logicalBytes, 824201);
   assert(saved.scan.allocatedBytes > saved.scan.logicalBytes);
   assert.equal(saved.scan.allocationUnknown, 0);
   assert.equal(saved.scan.skipped, 0);
@@ -73,18 +73,64 @@ try {
     path: path.join(root, "native-details.png"),
     fullPage: true,
   });
+  for (const operation of ["compress", "decompress"]) {
+    if (operation === "decompress") {
+      await page.getByRole("button", { name: "Library", exact: true }).click();
+      await page.getByRole("button", { name: "View details" }).click();
+    }
+    await page
+      .getByRole("button", {
+        name: operation === "compress" ? "Compress" : "Decompress",
+        exact: true,
+      })
+      .click();
+    const start = page.getByRole("button", {
+      name:
+        operation === "compress" ? "Start compression" : "Start decompression",
+    });
+    await start.waitFor();
+    await page.screenshot({
+      path: path.join(root, `native-${operation}.png`),
+      fullPage: true,
+    });
+    await start.click();
+    let outcome;
+    for (let attempt = 0; attempt < 200; attempt++) {
+      outcome = (await invoke("list_jobs")).find(
+        (item) => item.operation === operation,
+      );
+      if (outcome && !["running", "stopping"].includes(outcome.state)) break;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    assert.equal(outcome?.state, "completed", outcome?.message);
+    assert(outcome.files > 0);
+    if (operation === "compress")
+      assert(outcome.beforeBytes > outcome.afterBytes);
+    assert.deepEqual(
+      await readFile(path.join(fixture, "content.pak")),
+      Buffer.alloc(819200, 1),
+    );
+    assert.deepEqual(
+      await readFile(path.join(fixture, "intro.mp4")),
+      Buffer.alloc(5001, 2),
+    );
+    // Wait for React's polling refresh before starting the next operation.
+    await page
+      .getByRole("button", { name: "Cancel", exact: true })
+      .waitFor({ state: "detached" });
+  }
   await invoke("remove_game", { id: game.id });
   assert.equal((await invoke("list_games")).length, 0);
   assert.deepEqual(
     await readFile(path.join(fixture, "content.pak")),
-    Buffer.alloc(8192, 1),
+    Buffer.alloc(819200, 1),
   );
   assert.deepEqual(
     await readFile(path.join(fixture, "intro.mp4")),
     Buffer.alloc(5001, 2),
   );
   console.log(
-    `Native WebView2 smoke passed: real add, scan, persistence, UI rendering, and non-destructive removal. Screenshot: ${path.join(root, "native-details.png")}`,
+    `Native WebView2 smoke passed: add, scan, compression/decompression UI, measured savings, unchanged fixture contents, and non-destructive removal. Screenshots: ${root}`,
   );
 } finally {
   await browser.close();

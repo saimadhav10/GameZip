@@ -104,6 +104,7 @@ export function GameDetails({
   back,
   openFolder,
   remove,
+  compress,
 }: {
   game: Game;
   busy: boolean;
@@ -111,6 +112,7 @@ export function GameDetails({
   back: () => void;
   openFolder: () => void;
   remove: () => void;
+  compress: (operation: "compress" | "decompress") => void;
 }) {
   const [filter, setFilter] = useState("");
   const result = game.scan;
@@ -131,14 +133,25 @@ export function GameDetails({
             {game.path}
           </p>
         </div>
-        <button
-          className="primary"
-          disabled={busy || game.missing}
-          onClick={scan}
-        >
-          <RefreshCw size={17} />
-          {result ? "Rescan" : "Analyse game"}
-        </button>
+        <div className="detail-actions">
+          <button
+            className={result ? "secondary" : "primary"}
+            disabled={busy || game.missing}
+            onClick={scan}
+          >
+            <RefreshCw size={17} />
+            {result ? "Rescan" : "Analyse game"}
+          </button>
+          {result && (
+            <button
+              className="primary"
+              disabled={busy || game.missing}
+              onClick={() => compress("compress")}
+            >
+              Compress
+            </button>
+          )}
+        </div>
       </div>
       {game.missing && (
         <div className="alert">
@@ -254,14 +267,23 @@ export function GameDetails({
         </div>
       )}
       <div className="detail-footer">
-        <button
-          className="secondary"
-          onClick={openFolder}
-          disabled={game.missing}
-        >
-          <FolderOpen size={16} />
-          Open folder
-        </button>
+        <div className="detail-actions">
+          <button
+            className="secondary"
+            onClick={openFolder}
+            disabled={game.missing}
+          >
+            <FolderOpen size={16} />
+            Open folder
+          </button>
+          <button
+            className="text-button"
+            disabled={busy || game.missing}
+            onClick={() => compress("decompress")}
+          >
+            Decompress
+          </button>
+        </div>
         <button
           className="text-button danger-text"
           disabled={busy}

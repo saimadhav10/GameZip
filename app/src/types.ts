@@ -40,6 +40,20 @@ export interface Job {
   message: string;
   startedAt: number;
   finishedAt: number | null;
+  operation: "scan" | "compress" | "decompress";
+  totalFiles: number | null;
+  beforeBytes: number;
+  afterBytes: number;
+}
+
+export interface CompressionPreview {
+  token: string;
+  operation: "compress" | "decompress";
+  files: number;
+  skipped: number;
+  allocatedBytes: number;
+  freeBytes: number;
+  requiredFreeBytes: number;
 }
 export interface Candidate {
   name: string;

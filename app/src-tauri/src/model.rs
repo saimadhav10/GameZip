@@ -44,7 +44,7 @@ pub struct Game {
     pub scan: Option<ScanReport>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Job {
     pub id: String,
@@ -56,6 +56,18 @@ pub struct Job {
     pub message: String,
     pub started_at: u64,
     pub finished_at: Option<u64>,
+    #[serde(default = "scan_operation")]
+    pub operation: String,
+    #[serde(default)]
+    pub total_files: Option<u64>,
+    #[serde(default)]
+    pub before_bytes: u64,
+    #[serde(default)]
+    pub after_bytes: u64,
+}
+
+fn scan_operation() -> String {
+    "scan".into()
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
