@@ -23,11 +23,12 @@ Updated: 2026-11-05. Analyser and compression milestones validated locally; next
 
 ## Resume here
 
-1. Inspect the user's installed Cyberpunk 2077 read-only for video compatibility. It was found through the uninstall registry at `S:\cb\Cyberpunk 2077`. Never modify real game files during automated tests. No game/build is approved for video replacement yet.
+1. Cyberpunk's main video archive was inspected read-only: 552 Bink/Bink 2 headers, zero 4K candidates. See `docs/cyberpunk-video-compatibility.md` and `scripts/inspect-cyberpunk.mjs`. The installed game was found through its uninstall registry entry. Other DLC/mod archives and actual playback are not yet validated. Never modify real game files during automated tests.
 2. LZX fixture verification confirmed that Windows exposes WOF files through ordinary file APIs with the correct allocated size. The scanner includes them without following junctions. Do not assume WOF files are always visible as reparse points; validate through WofIsExternalFile.
 3. Failed final SQLite writes now retain an in-memory failed result, preventing a phantom running job. A restart reconciles the durable record as interrupted.
 4. Video backup lifecycle approved on 2026-11-05: retention starts after successful conversion; incomplete recovery copies remain; deletion is postponed during a restore. Minimum seven days, user-selected location/duration. Restore conflict behavior and tested codecs/profiles remain unresolved.
 5. Investigate provider sign-in without a GameZip backend. Epic requires product/client setup and brand review for public users; no credentials or product configuration have been supplied. Steam's documented OpenID flow targets websites; a local-only desktop callback still needs validation.
 6. Compression limitations are in README.md: local NTFS, classic Windows path lengths/names, no shared links or unsupported compression. If extending them, validate on disposable fixtures first.
+7. Continue the local video-backup foundation using generated samples. Do not enable game-video replacement until a supported 4K profile and restore-conflict behavior are validated. The hourly continuation remains active because videos, accounts, and release validation are incomplete.
 
 Use `scripts/desktop.ps1` for development/builds; Rust was installed under the user's default `.cargo/bin` directory without changing system PATH. The heartbeat `continue-gamezip-implementation` is active hourly for requested continuation after usage-limit interruptions.

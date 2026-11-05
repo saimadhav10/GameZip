@@ -16,6 +16,7 @@ Updated: 2026-11-05. The analyser and compression milestones are implemented and
 - **Backups:** Mandatory local originals backup for video conversion. Users choose location and retention, with a minimum of seven days and automatic deletion at expiry. No-backup mode is excluded. Proposed default retention: seven days.
 - **Backup lifecycle:** Retention starts after successful conversion. Keep incomplete recovery copies and postpone deletion during a restore (approved 2026-11-05).
 - **First video compatibility candidate:** The user's installed Cyberpunk 2077. Inspect read-only and validate formats/playback before enabling replacement; installation alone does not establish compatibility.
+- **Cyberpunk inspection result:** Its main video archive contains no 4K candidates in the header inventory. Details and scope limits are in [docs/cyberpunk-video-compatibility.md](docs/cyberpunk-video-compatibility.md); replacement remains disabled.
 - **Window close:** Continue active jobs in the system tray when the window is closed.
 - **Compression stopping:** Prioritise a running game. Refuse to start while a game process is detected; stop after the current file if it launches. Cancel or explicit tray Quit also stops after the current file; completed files remain compressed and usable. The user delegated this choice on 2026-11-03.
 - **UI:** Keep the supplied style; minimise visible information and show only what is needed.
