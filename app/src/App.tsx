@@ -220,11 +220,15 @@ function App() {
             <button className="active-banner" onClick={() => navigate("jobs")}>
               <LoaderCircle size={17} className="spin" />
               <span>
-                {running.operation === "compress"
-                  ? "Compressing"
-                  : running.operation === "decompress"
-                    ? "Decompressing"
-                    : "Scanning"}{" "}
+                {running.state === "paused"
+                  ? "Paused"
+                  : running.state === "pausing"
+                    ? "Pausing"
+                    : running.operation === "compress"
+                      ? "Compressing"
+                      : running.operation === "decompress"
+                        ? "Decompressing"
+                        : "Scanning"}{" "}
                 <strong>{running.gameName}</strong>
               </span>
               <small>{running.files.toLocaleString()} files</small>
@@ -407,7 +411,9 @@ function App() {
                               {game.missing
                                 ? "Folder unavailable"
                                 : running?.gameId === game.id
-                                  ? "Scanning"
+                                  ? running.state === "paused"
+                                    ? "Paused"
+                                    : "Working"
                                   : game.scan
                                     ? game.scan.skipped ||
                                       game.scan.allocationUnknown
@@ -503,15 +509,35 @@ function App() {
                               : `${bytes(job.logicalBytes)} measured`}{" "}
                           · {dateTime(job.startedAt)}
                         </small>
-                        {activeJob(job) && (
+                        {activeJob(job) && job.state !== "paused" && (
                           <div
                             className="indeterminate"
-                            aria-label="Scan in progress"
+                            aria-label="Job in progress"
                           >
                             <span />
                           </div>
                         )}
                       </div>
+                      {activeJob(job) &&
+                        job.operation !== "scan" &&
+                        job.state !== "stopping" && (
+                          <button
+                            className="secondary"
+                            disabled={working}
+                            onClick={() =>
+                              action(() =>
+                                api.pause(
+                                  job.id,
+                                  !["paused", "pausing"].includes(job.state),
+                                ),
+                              )
+                            }
+                          >
+                            {["paused", "pausing"].includes(job.state)
+                              ? "Resume"
+                              : "Pause"}
+                          </button>
+                        )}
                       {activeJob(job) ? (
                         <button
                           className="secondary"

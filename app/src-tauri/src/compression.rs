@@ -15,6 +15,15 @@ pub enum Operation {
     Decompress,
 }
 
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Strength {
+    Fast,
+    Balanced,
+    #[default]
+    Maximum,
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PlannedFile {
@@ -28,6 +37,8 @@ pub struct PlannedFile {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Plan {
+    #[serde(default)]
+    pub strength: Strength,
     pub root: PathBuf,
     pub operation: Operation,
     pub files: Vec<PlannedFile>,
@@ -63,9 +74,11 @@ mod platform {
         Foundation::{CloseHandle, GetLastError},
         Storage::FileSystem::{
             BY_HANDLE_FILE_INFORMATION, FILE_FLAG_BACKUP_SEMANTICS, FILE_FLAG_OPEN_REPARSE_POINT,
-            FILE_PROVIDER_COMPRESSION_LZX, FILE_READ_ATTRIBUTES, FILE_SHARE_READ, FILE_SHARE_WRITE,
-            GetDiskFreeSpaceExW, GetFileInformationByHandle, GetVolumeInformationW,
-            GetVolumePathNameW, WOF_FILE_COMPRESSION_INFO_V1, WOF_PROVIDER_FILE, WofIsExternalFile,
+            FILE_PROVIDER_COMPRESSION_LZX, FILE_PROVIDER_COMPRESSION_XPRESS4K,
+            FILE_PROVIDER_COMPRESSION_XPRESS8K, FILE_READ_ATTRIBUTES, FILE_SHARE_READ,
+            FILE_SHARE_WRITE, GetDiskFreeSpaceExW, GetFileInformationByHandle,
+            GetVolumeInformationW, GetVolumePathNameW, WOF_FILE_COMPRESSION_INFO_V1,
+            WOF_PROVIDER_FILE, WofIsExternalFile,
         },
         System::{
             ProcessStatus::EnumProcesses,
@@ -180,7 +193,14 @@ mod platform {
         }
         Ok(match (op, algorithm(path)?) {
             (Operation::Compress, None) => metadata.len() > 0,
-            (Operation::Decompress, Some(FILE_PROVIDER_COMPRESSION_LZX)) => true,
+            (
+                Operation::Decompress,
+                Some(
+                    FILE_PROVIDER_COMPRESSION_LZX
+                    | FILE_PROVIDER_COMPRESSION_XPRESS4K
+                    | FILE_PROVIDER_COMPRESSION_XPRESS8K,
+                ),
+            ) => true,
             _ => false,
         })
     }
@@ -239,6 +259,7 @@ mod platform {
         require_ntfs(&root)?;
         ensure_game_stopped(&root)?;
         let mut plan = Plan {
+            strength: Strength::default(),
             root: root.clone(),
             operation,
             files: Vec::new(),
@@ -450,6 +471,15 @@ mod platform {
         operation: Operation,
         planned: &PlannedFile,
     ) -> Result<Outcome, String> {
+        apply_using(root, operation, planned, Strength::Maximum)
+    }
+
+    pub fn apply_using(
+        root: &Path,
+        operation: Operation,
+        planned: &PlannedFile,
+        strength: Strength,
+    ) -> Result<Outcome, String> {
         ensure_game_stopped(root)?;
         let _directories = guard_path(root, &planned.relative)?;
         let path = root.join(&planned.relative);
@@ -489,7 +519,15 @@ mod platform {
             .join("compact.exe");
         let output = Command::new(compact)
             .args(match operation {
-                Operation::Compress => ["/C", "/EXE:LZX", "/A"],
+                Operation::Compress => [
+                    "/C",
+                    match strength {
+                        Strength::Fast => "/EXE:XPRESS4K",
+                        Strength::Balanced => "/EXE:XPRESS8K",
+                        Strength::Maximum => "/EXE:LZX",
+                    },
+                    "/A",
+                ],
                 Operation::Decompress => ["/U", "/EXE", "/A"],
             })
             .arg(command_path)
@@ -516,11 +554,18 @@ mod platform {
         }
         let state = algorithm(&path)?;
         let changed = match operation {
-            Operation::Compress => state == Some(FILE_PROVIDER_COMPRESSION_LZX),
+            Operation::Compress => {
+                state
+                    == Some(match strength {
+                        Strength::Fast => FILE_PROVIDER_COMPRESSION_XPRESS4K,
+                        Strength::Balanced => FILE_PROVIDER_COMPRESSION_XPRESS8K,
+                        Strength::Maximum => FILE_PROVIDER_COMPRESSION_LZX,
+                    })
+            }
             Operation::Decompress => state.is_none(),
         };
         if operation == Operation::Decompress && !changed {
-            return Err("Windows did not remove LZX compression.".into());
+            return Err("Windows did not remove compression.".into());
         }
         // NTFS may trim provisional allocation when the final pre-operation
         // handle closes. Reopen after releasing that handle for the result.
@@ -541,11 +586,31 @@ mod platform {
 }
 
 #[cfg(windows)]
-pub use platform::{apply, ensure_game_stopped, free_space, prepare, running_in};
+pub use platform::{apply, apply_using, ensure_game_stopped, free_space, prepare, running_in};
 
 #[cfg(all(test, windows))]
 mod tests {
     use super::*;
+
+    #[test]
+    fn every_strength_roundtrips_without_changing_contents() {
+        for strength in [Strength::Fast, Strength::Balanced, Strength::Maximum] {
+            let root = tempfile::tempdir().unwrap();
+            let path = root.path().join("fixture.pak");
+            let original = b"Disposable strength fixture ".repeat(80000);
+            fs::write(&path, &original).unwrap();
+            let plan = prepare(root.path(), Operation::Compress, &AtomicBool::new(false)).unwrap();
+            let result = apply_using(&plan.root, plan.operation, &plan.files[0], strength).unwrap();
+            assert!(result.changed);
+            assert!(result.after < result.before);
+            assert_eq!(fs::read(&path).unwrap(), original);
+            let undo =
+                prepare(root.path(), Operation::Decompress, &AtomicBool::new(false)).unwrap();
+            assert_eq!(undo.files.len(), 1);
+            apply_using(&undo.root, undo.operation, &undo.files[0], strength).unwrap();
+            assert_eq!(fs::read(&path).unwrap(), original);
+        }
+    }
 
     #[test]
     fn running_game_blocks_preparation_and_a_previously_prepared_file() {

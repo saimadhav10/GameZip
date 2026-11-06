@@ -11,6 +11,17 @@ use std::{
 };
 
 pub fn category(path: &Path) -> &'static str {
+    // Use installation-relative directory markers, never the name of a parent
+    // library directory or an archive filename, to identify loose mod files.
+    if path.parent().is_some_and(|p| {
+        p.components().any(|c| {
+            c.as_os_str()
+                .to_str()
+                .is_some_and(|s| s.eq_ignore_ascii_case("mods") || s.eq_ignore_ascii_case("mod"))
+        })
+    }) {
+        return "Mods";
+    }
     match path
         .extension()
         .and_then(|s| s.to_str())
@@ -19,11 +30,11 @@ pub fn category(path: &Path) -> &'static str {
         .as_str()
     {
         "pak" | "archive" | "vpk" | "ba2" | "bsa" | "zip" | "7z" | "rar" | "pck" | "bundle"
-        | "ucas" | "utoc" => "Archives",
+        | "ucas" | "utoc" => "Game archives",
         "mp4" | "webm" | "mkv" | "avi" | "mov" | "bik" | "bk2" | "wmv" | "usm" => "Videos",
         "wav" | "ogg" | "mp3" | "flac" | "wem" | "bnk" | "opus" => "Audio",
-        "png" | "jpg" | "jpeg" | "dds" | "tga" | "bmp" | "webp" | "ktx" => "Images",
-        "exe" | "dll" | "so" | "sys" => "Programs",
+        "png" | "jpg" | "jpeg" | "dds" | "tga" | "bmp" | "webp" | "ktx" => "Graphics & textures",
+        "exe" | "dll" | "so" | "sys" => "DLLs & executables",
         _ => "Other",
     }
 }
@@ -114,7 +125,7 @@ pub fn scan(
             if disk.is_none() {
                 report.allocation_unknown += 1;
             }
-            let kind = category(&path);
+            let kind = category(path.strip_prefix(root).unwrap_or(&path));
             let group = categories.entry(kind.into()).or_insert_with(|| Category {
                 name: kind.into(),
                 files: 0,
@@ -166,6 +177,23 @@ pub fn scan(
 mod tests {
     use super::*;
     #[test]
+    fn categories_use_file_types_and_explicit_mod_directories() {
+        assert_eq!(
+            category(Path::new("textures/world.dds")),
+            "Graphics & textures"
+        );
+        assert_eq!(category(Path::new("bin/engine.DLL")), "DLLs & executables");
+        assert_eq!(category(Path::new("mods/example/data.pak")), "Mods");
+        assert_eq!(category(Path::new("textures.pak")), "Game archives");
+        assert_eq!(category(Path::new("models/world.dat")), "Other");
+        let parent = tempfile::tempdir().unwrap();
+        let root = parent.path().join("mods");
+        fs::create_dir(&root).unwrap();
+        fs::write(root.join("engine.dll"), b"fixture").unwrap();
+        let report = scan(&root, &AtomicBool::new(false), |_, _| {}).unwrap();
+        assert_eq!(report.categories[0].name, "DLLs & executables");
+    }
+    #[test]
     fn counts_unique_files_and_classifies_opaque_archives_without_guessing() {
         let dir = tempfile::tempdir().unwrap();
         fs::create_dir(dir.path().join("nested")).unwrap();
@@ -180,7 +208,7 @@ mod tests {
             report
                 .categories
                 .iter()
-                .find(|c| c.name == "Archives")
+                .find(|c| c.name == "Game archives")
                 .unwrap()
                 .logical_bytes,
             12000

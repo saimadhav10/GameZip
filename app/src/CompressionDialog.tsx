@@ -19,13 +19,16 @@ export function CompressionDialog({
   const [error, setError] = useState("");
   const [starting, setStarting] = useState(false);
   const [retry, setRetry] = useState(0);
+  const [strength, setStrength] = useState<"fast" | "balanced" | "maximum">(
+    "balanced",
+  );
   const verb = operation === "compress" ? "Compress" : "Decompress";
   useEffect(() => {
     let alive = true;
     setPreview(null);
     setError("");
     api
-      .prepareCompression(game.id, operation)
+      .prepareCompression(game.id, operation, strength)
       .then((result) => {
         if (alive) setPreview(result);
       })
@@ -35,10 +38,28 @@ export function CompressionDialog({
     return () => {
       alive = false;
     };
-  }, [game.id, operation, retry]);
+  }, [game.id, operation, retry, strength]);
   const enoughSpace = preview && preview.freeBytes >= preview.requiredFreeBytes;
   return (
     <Modal title={`${verb} ${game.name}?`} close={close} busy={starting}>
+      {operation === "compress" && (
+        <div className="segmented" aria-label="Compression strength">
+          {(["fast", "balanced", "maximum"] as const).map((value) => (
+            <button
+              key={value}
+              disabled={starting}
+              aria-pressed={strength === value}
+              onClick={() => {
+                if (value === strength) return;
+                setPreview(null);
+                setStrength(value);
+              }}
+            >
+              {value[0].toUpperCase() + value.slice(1)}
+            </button>
+          ))}
+        </div>
+      )}
       {error && (
         <div className="alert" role="alert">
           <CircleAlert size={18} />
@@ -59,8 +80,8 @@ export function CompressionDialog({
           </div>
           <p className="muted">
             {operation === "compress"
-              ? "Use Windows LZX compression. Actual savings appear after the job."
-              : "Remove LZX compression and return these files to their uncompressed size."}
+              ? `${strength === "fast" ? "Faster compression, usually smaller savings." : strength === "balanced" ? "A balance of compression speed and savings." : "Maximum compression, with more processing time."} Actual savings appear after the job.`
+              : "Remove compression and return these files to their uncompressed size."}
           </p>
           {preview.files === 0 ? (
             <p className="notice">No eligible files need this operation.</p>
@@ -88,6 +109,12 @@ export function CompressionDialog({
               can {operation === "compress" ? "decompress" : "compress"} them
               later.
             </p>
+            {operation === "compress" && (
+              <p>
+                Already compressed files are skipped. Decompress first if you
+                want to change their compression strength.
+              </p>
+            )}
           </details>
         </>
       )}

@@ -1,5 +1,7 @@
 # Implementation checkpoint
 
+2026-11-06 first update increment: Pause/Resume, Fast/Balanced/Maximum compression, background worker scheduling, richer interactive storage categories and MIT licensing. Validation: 21 Rust tests, seven Playwright flows, Clippy with warnings denied, formatting and frontend build passed. Native round-trip tests cover all three algorithms and unchanged fixture contents. Small-window chart screenshot inspected. Debug desktop build refreshed; no real games modified during tests. This increment has not received a new native UI smoke run or performance benchmark. See [docs/next-update.md](docs/next-update.md) for the entire authorised backlog. Game-video replacement and public release remain unavailable.
+
 Updated: 2026-11-05. Analyser and compression milestones validated locally; next work: Cyberpunk video compatibility and account feasibility.
 
 ## Implemented and validated

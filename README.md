@@ -1,6 +1,6 @@
 # GameZip
 
-A local Windows game storage analyser and LZX compressor, built with Tauri, React, Rust, and SQLite.
+A local Windows game storage analyser and lossless compressor, built with Tauri, React, Rust, and SQLite.
 
 ## Current build
 
@@ -8,7 +8,9 @@ A local Windows game storage analyser and LZX compressor, built with Tauri, Reac
 - Inspect allocated disk usage, logical size, file distribution, and the 100 largest files.
 - Keep a local library and scan history; cancel scans without replacing previous results.
 - Continue scanning in the system tray when the window closes.
-- Compress eligible files with LZX, decompress them, and view measured changes in Jobs.
+- Compress eligible files with Fast (XPRESS4K), Balanced (XPRESS8K, default) or Maximum (LZX), decompress them, and view measured changes in Jobs.
+- Pause and resume compression between files. Cancellation and tray Quit remain available while paused.
+- Inspect storage by graphics/textures, videos, audio, explicit mod directories, DLLs/executables, game archives and other files; hover or focus chart categories for details. Rescan older reports to update their categories.
 - Check running game processes and free space; stop after the current file when cancelling, quitting, or detecting a game launch.
 
 The analyser and compression milestones are available. Video conversion/backups and account connections are not enabled yet. Scanning never modifies game files. See [project_plan.md](project_plan.md) for the agreed scope and [implementation_status.md](implementation_status.md) for the implementation checkpoint.
@@ -62,7 +64,9 @@ UI references remain untouched under `uiassts/`. Game artwork is not downloaded;
 
 ## Compression limits
 
-Compression operates on individual files on local NTFS volumes. This build excludes paths of 260 characters or more, names that Windows would normalise, hard-linked/shared files, links, encrypted/read-only/sparse files, existing NTFS compression, and non-LZX WOF compression. Decompress only targets LZX files. A conservative space reserve is checked before starting and before each file.
+Compression operates on individual files on local NTFS volumes. This build excludes paths of 260 characters or more, names that Windows would normalise, hard-linked/shared files, links, encrypted/read-only/sparse files and already-compressed files. Decompress targets LZX, XPRESS4K and XPRESS8K files. A conservative space reserve is checked before starting and before each file. To change an already-compressed file's strength, decompress it first.
+
+Pause takes effect after the current file; large files may take time to finish. GameZip's scan/preparation/job threads use Windows background scheduling, while compact.exe retains below-normal CPU priority. This does not cap compact.exe disk activity. Quiet/idle-only controls and performance measurements remain on the [next-update checklist](docs/next-update.md).
 
 Process detection checks accessible executable paths inside the game folder; protected processes and launchers outside that folder may not be identifiable. Keep the game and its updater closed. GameZip never terminates game processes. It runs `compact.exe` without a window at below-normal CPU priority, finishing the current file before stopping.
 

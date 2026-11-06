@@ -28,10 +28,28 @@ async function native(page: Page, scenario = "normal") {
       completedAt: 1793680000,
       categories: [
         {
-          name: "Archives",
-          files: 20,
-          logicalBytes: 1610612736,
-          allocatedBytes: 1073741824,
+          name: "Game archives",
+          files: 8,
+          logicalBytes: 1073741824,
+          allocatedBytes: 536870912,
+        },
+        {
+          name: "Graphics & textures",
+          files: 4,
+          logicalBytes: 268435456,
+          allocatedBytes: 268435456,
+        },
+        {
+          name: "DLLs & executables",
+          files: 4,
+          logicalBytes: 134217728,
+          allocatedBytes: 134217728,
+        },
+        {
+          name: "Mods",
+          files: 4,
+          logicalBytes: 134217728,
+          allocatedBytes: 134217728,
         },
         {
           name: "Videos",
@@ -164,6 +182,14 @@ async function native(page: Page, scenario = "normal") {
           jobs[0].message = "Scan cancelled. Previous results were kept.";
           return;
         }
+        if (cmd === "pause_job") {
+          jobs[0].state = args.paused ? "paused" : "running";
+          jobs[0].message = args.paused
+            ? "Paused. Resume when you are ready."
+            : "Processing files";
+          finishAt = Date.now() + 2200;
+          return;
+        }
         if (cmd === "remove_game") {
           games.splice(0);
           return;
@@ -188,6 +214,30 @@ async function scannedGame(page: Page, scenario = "normal") {
     page.getByRole("heading", { name: "What's taking space" }),
   ).toBeVisible();
 }
+
+test("paused compression retains its reservation and can resume or cancel", async ({
+  page,
+}) => {
+  await scannedGame(page);
+  await page.getByRole("button", { name: "Compress", exact: true }).click();
+  await page.getByRole("button", { name: "Start compression" }).click();
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  await expect(
+    page.getByText("Paused. Resume when you are ready."),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Library", exact: true }).click();
+  await page.getByRole("button", { name: "View details" }).click();
+  await expect(
+    page.getByRole("button", { name: "Analyse game" }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Jobs", exact: true }).click();
+  await page.getByRole("button", { name: "Resume", exact: true }).click();
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Resume", exact: true }),
+  ).toHaveCount(0);
+});
 
 test("compression preview starts a job and reports measured savings", async ({
   page,
@@ -296,6 +346,13 @@ test("manual import, scan, distribution, cancellation and removal work together"
     page.getByRole("button", { name: "File count", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Disk usage", exact: true }).click();
+  const graphics = page
+    .locator(".legend > div")
+    .filter({ hasText: "Graphics & textures" });
+  await expect(graphics).toContainText("16.7%");
+  await graphics.focus();
+  await expect(page.locator(".donut")).toContainText("Graphics & textures");
+  await page.getByRole("button", { name: "Disk usage", exact: true }).focus();
   await page.screenshot({
     path: "test-results/game-details.png",
     fullPage: true,

@@ -18,9 +18,19 @@ export const api = {
   add: (candidate: Candidate) => invoke<Game>("add_game", { ...candidate }),
   remove: (id: string) => invoke<void>("remove_game", { id }),
   scan: (id: string) => invoke<Job>("start_scan", { id }),
-  prepareCompression: (id: string, operation: "compress" | "decompress") =>
-    invoke<CompressionPreview>("prepare_compression", { id, operation }),
+  prepareCompression: (
+    id: string,
+    operation: "compress" | "decompress",
+    strength: "fast" | "balanced" | "maximum" = "maximum",
+  ) =>
+    invoke<CompressionPreview>("prepare_compression", {
+      id,
+      operation,
+      strength,
+    }),
   compress: (token: string) => invoke<Job>("start_compression", { token }),
+  pause: (id: string, paused: boolean) =>
+    invoke<void>("pause_job", { id, paused }),
   cancel: (id: string) => invoke<void>("cancel_scan", { id }),
   openFolder: (id: string) => invoke<void>("open_game_folder", { id }),
   pickFolder: () =>
@@ -41,7 +51,7 @@ export function bytes(value: number): string {
   return `${(value / 1024 ** level).toLocaleString(undefined, { maximumFractionDigits: level > 0 ? 1 : 0 })} ${units[level]}`;
 }
 export const activeJob = (job: Job) =>
-  job.state === "running" || job.state === "stopping";
+  ["running", "stopping", "pausing", "paused"].includes(job.state);
 export const dateTime = (seconds: number) =>
   new Date(seconds * 1000).toLocaleString(undefined, {
     dateStyle: "medium",

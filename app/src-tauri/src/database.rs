@@ -320,7 +320,14 @@ mod tests {
             .unwrap()
             .execute_batch("PRAGMA query_only=ON")
             .unwrap();
-        let finished = compression_job::run(&db, &plan, job, &cancel, |_| {});
+        let finished = compression_job::run(
+            &db,
+            &plan,
+            job,
+            &cancel,
+            &crate::scheduling::Pause::default(),
+            |_| {},
+        );
         assert_eq!(finished.state, "failed");
         assert_eq!(finished.files, 0);
         assert_eq!(std::fs::read(root.join("data.pak")).unwrap(), contents);

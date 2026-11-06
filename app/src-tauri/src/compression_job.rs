@@ -4,7 +4,7 @@ use crate::{
     model::{Job, now},
     scanner,
 };
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::AtomicBool;
 
 /// Every mutation is bracketed by durable file records. A failed journal write
 /// stops the worker; restart prepares against live compression state, never
@@ -14,11 +14,12 @@ pub fn run(
     plan: &Plan,
     mut job: Job,
     cancel: &AtomicBool,
+    pause: &crate::scheduling::Pause,
     mut progress: impl FnMut(&Job),
 ) -> Job {
     let mut changed = 0;
     for (index, file) in plan.files.iter().enumerate() {
-        if cancel.load(Ordering::Relaxed) {
+        if !pause.checkpoint(cancel) {
             job.state = "cancelled".into();
             job.message =
                 "Stopped safely. Completed files keep their current compression state.".into();
@@ -32,7 +33,7 @@ pub fn run(
             job.message = error;
             break;
         }
-        match compression::apply(&plan.root, plan.operation, file) {
+        match compression::apply_using(&plan.root, plan.operation, file, plan.strength) {
             Ok(result) => {
                 if let Err(error) = db.file_step(
                     &job.id,
@@ -78,7 +79,7 @@ pub fn run(
         }
     }
     if job.state == "running" {
-        if cancel.load(Ordering::Relaxed) {
+        if !pause.checkpoint(cancel) {
             job.state = "cancelled".into();
             job.message =
                 "Stopped safely. Completed files keep their current compression state.".into();
@@ -122,6 +123,7 @@ pub fn run(
 mod tests {
     use super::*;
     use std::fs;
+    use std::sync::atomic::Ordering;
     #[test]
     fn cancellation_keeps_completed_files_and_records_remaining_work() {
         let temp = tempfile::tempdir().unwrap();
@@ -146,11 +148,18 @@ mod tests {
             ..Default::default()
         };
         db.begin_compression(&job, &plan).unwrap();
-        let finished = run(&db, &plan, job, &cancel, |job| {
-            if job.files == 1 {
-                cancel.store(true, Ordering::Relaxed);
-            }
-        });
+        let finished = run(
+            &db,
+            &plan,
+            job,
+            &cancel,
+            &crate::scheduling::Pause::default(),
+            |job| {
+                if job.files == 1 {
+                    cancel.store(true, Ordering::Relaxed);
+                }
+            },
+        );
         assert_eq!(finished.state, "cancelled");
         assert_eq!(finished.files, 1);
         assert!(finished.before_bytes > finished.after_bytes);

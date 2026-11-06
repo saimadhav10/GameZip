@@ -1,5 +1,7 @@
 # GameZip — Project Plan
 
+Implementation resumed 2026-11-06. The full newly authorised update scope and progress are tracked in [docs/next-update.md](docs/next-update.md), including performance controls, chart details, video backup/restore, updates, packaging and MIT licensing. This supersedes the earlier LZX-only scope boundary: selectable compression algorithms are now authorised. Restore conflicts must preserve newer game files and offer separate backup export.
+
 Updated: 2026-11-05. The analyser and compression milestones are implemented and validated locally. See [implementation_status.md](implementation_status.md) for current checks, limitations, and next work.
 
 ## Confirmed decisions

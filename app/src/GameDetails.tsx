@@ -12,6 +12,10 @@ import { bytes, dateTime } from "./api";
 import type { Category, Game } from "./types";
 
 const colors: Record<string, string> = {
+  "Game archives": "#ff7a36",
+  "Graphics & textures": "#72d99e",
+  "DLLs & executables": "#efc66b",
+  Mods: "#e895cd",
   Archives: "#ff7a36",
   Videos: "#69ccee",
   Audio: "#b7a5ef",
@@ -28,6 +32,7 @@ function Distribution({
   totalFiles: number;
 }) {
   const [mode, setMode] = useState<"disk" | "files">("disk");
+  const [highlight, setHighlight] = useState<Category | null>(null);
   const total = categories.reduce(
     (sum, c) => sum + (mode === "disk" ? c.allocatedBytes : c.files),
     0,
@@ -37,7 +42,7 @@ function Distribution({
     const value = mode === "disk" ? category.allocatedBytes : category.files;
     const start = offset;
     offset += total ? (value / total) * 100 : 0;
-    return `${colors[category.name]} ${start}% ${offset}%`;
+    return `${colors[category.name] ?? colors.Other} ${start}% ${offset}%`;
   });
   return (
     <section className="panel distribution">
@@ -61,6 +66,25 @@ function Distribution({
       <div className="distribution-content">
         <div
           className="donut"
+          onMouseLeave={() => setHighlight(null)}
+          onMouseMove={(event) => {
+            const box = event.currentTarget.getBoundingClientRect();
+            const angle =
+              (Math.atan2(
+                event.clientY - box.top - box.height / 2,
+                event.clientX - box.left - box.width / 2,
+              ) +
+                Math.PI * 2.5) %
+              (Math.PI * 2);
+            const target = (angle / (Math.PI * 2)) * total;
+            let sum = 0;
+            setHighlight(
+              categories.find((c) => {
+                sum += mode === "disk" ? c.allocatedBytes : c.files;
+                return sum > target;
+              }) ?? null,
+            );
+          }}
           role="img"
           aria-label={`File distribution by ${mode === "disk" ? "disk usage" : "file count"}; values listed alongside`}
           style={{
@@ -70,21 +94,47 @@ function Distribution({
           }}
         >
           <div>
-            <small>{mode === "disk" ? "ON DISK" : "FILES"}</small>
+            <small>
+              {highlight?.name ?? (mode === "disk" ? "ON DISK" : "FILES")}
+            </small>
             <strong>
-              {mode === "disk" ? bytes(total) : totalFiles.toLocaleString()}
+              {mode === "disk"
+                ? bytes(highlight?.allocatedBytes ?? total)
+                : (highlight?.files ?? totalFiles).toLocaleString()}
             </strong>
           </div>
         </div>
         <div className="legend">
           {categories.map((category) => (
-            <div key={category.name}>
+            <div
+              key={category.name}
+              tabIndex={0}
+              onFocus={() => setHighlight(category)}
+              onBlur={() => setHighlight(null)}
+              onMouseEnter={() => setHighlight(category)}
+              onMouseLeave={() => setHighlight(null)}
+              title={`${category.name}: ${bytes(category.allocatedBytes)} on disk, ${category.files.toLocaleString()} files`}
+            >
               <i style={{ background: colors[category.name] }} />
               <span>{category.name}</span>
               <strong>
                 {mode === "disk"
                   ? bytes(category.allocatedBytes)
                   : category.files.toLocaleString()}
+                <small>
+                  {" "}
+                  ·{" "}
+                  {total
+                    ? (
+                        ((mode === "disk"
+                          ? category.allocatedBytes
+                          : category.files) /
+                          total) *
+                        100
+                      ).toFixed(1)
+                    : "0"}
+                  %
+                </small>
               </strong>
             </div>
           ))}
