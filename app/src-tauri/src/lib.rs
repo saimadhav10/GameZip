@@ -1,8 +1,10 @@
+pub mod backups;
 pub mod compression;
 mod compression_job;
 mod database;
 mod discovery;
 mod filesystem;
+pub mod media;
 mod model;
 mod scanner;
 mod scheduling;

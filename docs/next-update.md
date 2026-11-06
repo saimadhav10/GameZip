@@ -11,6 +11,8 @@ Authorised 2026-11-06. Keep the supplied minimal visual design and local-only da
 - Chart size/count percentages, category hover and keyboard-focus details.
 - MIT licence approved by the owner and added. Third-party distribution review remains outstanding.
 - Quiet compression (default on) inserts a rest interval equal to each processed file's duration before the next file. Idle-only (default off) waits for two minutes without session keyboard/mouse input before each file. Preferences persist locally and can change during a job; Pause/Cancel/Quit still take precedence. These controls reduce sustained activity but do not cap bandwidth within a single file.
+- Tested video foundations: a hash-verified local original-copy vault with minimum retention, expiry, restore reservations and conflict-safe export; a separate-output 4K-to-1080p MP4 sample preview engine. See [video-pipeline.md](video-pipeline.md). These APIs are not connected to the app's video UI or game-file replacement yet.
+- Per-user NSIS installer configuration with project licence and a manual GitHub review-artifact workflow. Public signing, notices, publishing and WinGet acceptance remain outstanding; see [release-checklist.md](release-checklist.md).
 
 ## Remaining implementation
 
