@@ -28,6 +28,7 @@ struct Active {
 }
 struct Engine {
     db: Database,
+    performance: scheduling::Policy,
     active: Mutex<Option<Active>>,
     quitting: AtomicBool,
     prepared: Mutex<Option<Prepared>>,
@@ -76,6 +77,19 @@ fn list_jobs(state: State<'_, AppState>) -> Result<Vec<Job>, String> {
         }
         .into();
     }
+    if let Some(active) = active.as_ref()
+        && !active.cancel.load(Ordering::Relaxed)
+        && active
+            .pause
+            .as_ref()
+            .is_some_and(|p| p.waiting_idle.load(Ordering::Relaxed))
+        && let Some(job) = jobs
+            .iter_mut()
+            .find(|j| j.id == active.id && j.state == "running")
+    {
+        job.state = "waiting".into();
+        job.message = "Waiting for two minutes without keyboard or mouse input. Change Idle-only in Settings to continue now.".into();
+    }
     Ok(jobs)
 }
 
@@ -123,7 +137,20 @@ fn open_game_folder(
 
 #[tauri::command]
 fn app_info(state: State<'_, AppState>) -> serde_json::Value {
-    serde_json::json!({"version":env!("CARGO_PKG_VERSION"), "databasePath":filesystem::display(&state.0.db.path)})
+    serde_json::json!({"version":env!("CARGO_PKG_VERSION"), "databasePath":filesystem::display(&state.0.db.path), "performance":state.0.performance.get()})
+}
+
+#[tauri::command]
+fn set_performance(
+    value: scheduling::Preferences,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    // Serialize settings changes with each other and job startup; save first so
+    // a failed disk write never makes the UI promise a persisted preference.
+    let _active = state.0.active.lock().map_err(|e| e.to_string())?;
+    state.0.db.save_performance(value)?;
+    state.0.performance.set(value);
+    Ok(())
 }
 
 #[tauri::command]
@@ -208,10 +235,17 @@ fn start_compression(
     let work = job.clone();
     std::thread::spawn(move || {
         let _background = scheduling::Background::enter();
-        let finished =
-            compression_job::run(&engine.db, &ready.plan, work, &cancel, &pause, |job| {
+        let finished = compression_job::run_scheduled(
+            &engine.db,
+            &ready.plan,
+            work,
+            &cancel,
+            &pause,
+            &engine.performance,
+            |job| {
                 let _ = app.emit("scan-progress", job);
-            });
+            },
+        );
         if let Ok(mut active) = engine.active.lock() {
             *active = None;
         }
@@ -369,6 +403,9 @@ pub fn run() {
             let db =
                 Database::open(directory.join("gamezip.sqlite")).map_err(std::io::Error::other)?;
             app.manage(AppState(Arc::new(Engine {
+                performance: scheduling::Policy::new(
+                    db.performance().map_err(std::io::Error::other)?,
+                ),
                 db,
                 active: Mutex::new(None),
                 quitting: AtomicBool::new(false),
@@ -425,6 +462,7 @@ pub fn run() {
             pause_job,
             open_game_folder,
             app_info,
+            set_performance,
             prepare_compression,
             start_compression
         ])

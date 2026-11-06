@@ -74,6 +74,11 @@ try {
     fullPage: true,
   });
   for (const operation of ["compress", "decompress"]) {
+    if (operation === "compress") {
+      await invoke("set_performance", {
+        value: { quiet: false, idleOnly: true },
+      });
+    }
     if (operation === "decompress") {
       await page.getByRole("button", { name: "Library", exact: true }).click();
       await page.getByRole("button", { name: "View details" }).click();
@@ -94,6 +99,31 @@ try {
       fullPage: true,
     });
     await start.click();
+    if (operation === "compress") {
+      // Recent UI input keeps the native worker at its idle gate. This checks
+      // the real scheduler and IPC, not a mocked browser job.
+      let waiting;
+      for (let attempt = 0; attempt < 40; attempt++) {
+        waiting = (await invoke("list_jobs")).find(
+          (item) => item.operation === operation,
+        );
+        if (waiting?.state === "waiting") break;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      assert.equal(waiting?.state, "waiting");
+      assert.equal(waiting.files, 0);
+      await invoke("pause_job", { id: waiting.id, paused: true });
+      await invoke("set_performance", {
+        value: { quiet: false, idleOnly: false },
+      });
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      const paused = (await invoke("list_jobs")).find(
+        (item) => item.id === waiting.id,
+      );
+      assert.equal(paused.state, "paused");
+      assert.equal(paused.files, 0);
+      await invoke("pause_job", { id: waiting.id, paused: false });
+    }
     let outcome;
     for (let attempt = 0; attempt < 200; attempt++) {
       outcome = (await invoke("list_jobs")).find(

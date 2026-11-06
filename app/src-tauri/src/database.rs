@@ -31,6 +31,13 @@ impl Database {
             unsaved_jobs: Mutex::new(Vec::new()),
             path,
         };
+        db.connection
+            .lock()
+            .map_err(|e| e.to_string())?
+            .execute_batch(
+                "CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);",
+            )
+            .map_err(|e| e.to_string())?;
         for mut job in db.jobs()? {
             if job.state == "running" || job.state == "stopping" {
                 job.state = "interrupted".into();
@@ -80,6 +87,29 @@ impl Database {
         }
         games.sort_by_key(|g| std::cmp::Reverse(g.scan.as_ref().map_or(0, |s| s.allocated_bytes)));
         Ok(games)
+    }
+
+    pub fn performance(&self) -> Result<crate::scheduling::Preferences, String> {
+        use rusqlite::OptionalExtension;
+        let json: Option<String> = self
+            .connection
+            .lock()
+            .map_err(|e| e.to_string())?
+            .query_row(
+                "SELECT value FROM settings WHERE key='performance'",
+                [],
+                |r| r.get(0),
+            )
+            .optional()
+            .map_err(|e| e.to_string())?;
+        json.map(|s| serde_json::from_str(&s).map_err(|e| e.to_string()))
+            .unwrap_or_else(|| Ok(Default::default()))
+    }
+
+    pub fn save_performance(&self, value: crate::scheduling::Preferences) -> Result<(), String> {
+        let json = serde_json::to_string(&value).map_err(|e| e.to_string())?;
+        self.connection.lock().map_err(|e| e.to_string())?.execute("INSERT INTO settings(key,value) VALUES('performance',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value", [json]).map_err(|e| e.to_string())?;
+        Ok(())
     }
 
     pub fn game(&self, id: &str) -> Result<Game, String> {
@@ -288,6 +318,23 @@ fn roots_overlap(a: &Path, b: &Path) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn performance_preferences_survive_restart() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("settings.sqlite");
+        let db = Database::open(path.clone()).unwrap();
+        assert!(db.performance().unwrap().quiet);
+        assert!(!db.performance().unwrap().idle_only);
+        db.save_performance(crate::scheduling::Preferences {
+            quiet: false,
+            idle_only: true,
+        })
+        .unwrap();
+        drop(db);
+        let saved = Database::open(path).unwrap().performance().unwrap();
+        assert!(!saved.quiet);
+        assert!(saved.idle_only);
+    }
     #[test]
     fn failed_file_journal_write_stops_before_compression() {
         use crate::{

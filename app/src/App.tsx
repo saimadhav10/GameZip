@@ -579,6 +579,59 @@ function App() {
               <section className="panel settings-panel">
                 <div className="setting-row">
                   <span className="setting-icon">
+                    <Activity />
+                  </span>
+                  <div>
+                    <h3>Quiet compression</h3>
+                    <p>
+                      Give your PC a break between files. Jobs take longer; a
+                      large file can still keep the disk busy.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    aria-label="Quiet compression"
+                    checked={info?.performance?.quiet ?? true}
+                    disabled={working || !desktop || !info}
+                    onChange={(e) =>
+                      action(() =>
+                        api.performance({
+                          quiet: e.target.checked,
+                          idleOnly: info?.performance?.idleOnly ?? false,
+                        }),
+                      )
+                    }
+                  />
+                </div>
+                <div className="setting-row">
+                  <span className="setting-icon">
+                    <Activity />
+                  </span>
+                  <div>
+                    <h3>Idle-only compression</h3>
+                    <p>
+                      Start the next file after two minutes without keyboard or
+                      mouse input. Returning finishes the current file, then
+                      waits.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    aria-label="Idle-only compression"
+                    checked={info?.performance?.idleOnly ?? false}
+                    disabled={working || !desktop || !info}
+                    onChange={(e) =>
+                      action(() =>
+                        api.performance({
+                          quiet: info?.performance?.quiet ?? true,
+                          idleOnly: e.target.checked,
+                        }),
+                      )
+                    }
+                  />
+                </div>
+                <div className="setting-row">
+                  <span className="setting-icon">
                     <HardDrive />
                   </span>
                   <div>

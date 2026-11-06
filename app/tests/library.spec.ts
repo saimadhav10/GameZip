@@ -17,6 +17,7 @@ async function native(page: Page, scenario = "normal") {
     const jobs: Record<string, unknown>[] = [];
     let finishAt = 0;
     let operation = "compress";
+    let performance = { quiet: true, idleOnly: false };
     const scan = {
       files: 23,
       logicalBytes: 2147483648,
@@ -80,7 +81,12 @@ async function native(page: Page, scenario = "normal") {
           return {
             version: "0.1.0",
             databasePath: "C:\\TestData\\gamezip.sqlite",
+            performance,
           };
+        if (cmd === "set_performance") {
+          performance = args.value as typeof performance;
+          return;
+        }
         if (cmd === "list_jobs") {
           if (jobs[0]?.state === "running" && Date.now() >= finishAt) {
             jobs[0].state = "completed";
@@ -308,6 +314,31 @@ test("browser preview is honest about native access", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Start with your first game." }),
   ).toBeVisible();
+});
+
+test("performance settings stay selected when revisiting settings", async ({
+  page,
+}) => {
+  await native(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(
+    page.getByRole("checkbox", { name: "Quiet compression", exact: true }),
+  ).toBeChecked();
+  await page
+    .getByRole("checkbox", { name: "Quiet compression", exact: true })
+    .uncheck();
+  await page
+    .getByRole("checkbox", { name: "Idle-only compression", exact: true })
+    .check();
+  await page.getByRole("button", { name: "Library", exact: true }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(
+    page.getByRole("checkbox", { name: "Quiet compression", exact: true }),
+  ).not.toBeChecked();
+  await expect(
+    page.getByRole("checkbox", { name: "Idle-only compression", exact: true }),
+  ).toBeChecked();
 });
 
 test("manual import, scan, distribution, cancellation and removal work together", async ({

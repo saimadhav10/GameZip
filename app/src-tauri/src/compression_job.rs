@@ -9,23 +9,48 @@ use std::sync::atomic::AtomicBool;
 /// Every mutation is bracketed by durable file records. A failed journal write
 /// stops the worker; restart prepares against live compression state, never
 /// blindly replays a file whose last recorded state was "running".
+#[cfg(test)]
 pub fn run(
+    db: &Database,
+    plan: &Plan,
+    job: Job,
+    cancel: &AtomicBool,
+    pause: &crate::scheduling::Pause,
+    progress: impl FnMut(&Job),
+) -> Job {
+    run_scheduled(
+        db,
+        plan,
+        job,
+        cancel,
+        pause,
+        &crate::scheduling::Policy::new(crate::scheduling::Preferences {
+            quiet: false,
+            idle_only: false,
+        }),
+        progress,
+    )
+}
+
+pub fn run_scheduled(
     db: &Database,
     plan: &Plan,
     mut job: Job,
     cancel: &AtomicBool,
     pause: &crate::scheduling::Pause,
+    policy: &crate::scheduling::Policy,
     mut progress: impl FnMut(&Job),
 ) -> Job {
     let mut changed = 0;
     for (index, file) in plan.files.iter().enumerate() {
-        if !pause.checkpoint(cancel) {
+        if !pause.scheduled_checkpoint(cancel, policy) {
             job.state = "cancelled".into();
             job.message =
                 "Stopped safely. Completed files keep their current compression state.".into();
             break;
         }
         job.message = file.relative.to_string_lossy().into();
+        let started = std::time::Instant::now();
         progress(&job);
         if let Err(error) = db.file_step(&job.id, index, "running", Some(file.allocated), None, "")
         {
@@ -63,6 +88,9 @@ pub fn run(
                     break;
                 }
                 progress(&job);
+                if index + 1 < plan.files.len() {
+                    pause.rest(started.elapsed(), cancel, policy);
+                }
             }
             Err(error) => {
                 let saved =
@@ -79,7 +107,7 @@ pub fn run(
         }
     }
     if job.state == "running" {
-        if !pause.checkpoint(cancel) {
+        if !pause.scheduled_checkpoint(cancel, policy) {
             job.state = "cancelled".into();
             job.message =
                 "Stopped safely. Completed files keep their current compression state.".into();

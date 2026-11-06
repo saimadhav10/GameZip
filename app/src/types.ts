@@ -67,4 +67,5 @@ export interface Discovery {
 export interface AppInfo {
   version: string;
   databasePath: string;
+  performance: { quiet: boolean; idleOnly: boolean };
 }

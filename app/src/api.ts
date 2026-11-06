@@ -14,6 +14,8 @@ export const api = {
   games: () => invoke<Game[]>("list_games"),
   jobs: () => invoke<Job[]>("list_jobs"),
   info: () => invoke<AppInfo>("app_info"),
+  performance: (value: AppInfo["performance"]) =>
+    invoke<void>("set_performance", { value }),
   discover: () => invoke<Discovery>("discover_games"),
   add: (candidate: Candidate) => invoke<Game>("add_game", { ...candidate }),
   remove: (id: string) => invoke<void>("remove_game", { id }),
@@ -51,7 +53,7 @@ export function bytes(value: number): string {
   return `${(value / 1024 ** level).toLocaleString(undefined, { maximumFractionDigits: level > 0 ? 1 : 0 })} ${units[level]}`;
 }
 export const activeJob = (job: Job) =>
-  ["running", "stopping", "pausing", "paused"].includes(job.state);
+  ["running", "stopping", "pausing", "paused", "waiting"].includes(job.state);
 export const dateTime = (seconds: number) =>
   new Date(seconds * 1000).toLocaleString(undefined, {
     dateStyle: "medium",

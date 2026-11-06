@@ -10,10 +10,11 @@ Authorised 2026-11-06. Keep the supplied minimal visual design and local-only da
 - Storage categories: graphics/textures, videos, audio, mods, DLLs/executables, game archives and other. Mod classification uses explicit mod directories within the installation; opaque archives remain archives. Existing reports retain their previous labels until rescanned.
 - Chart size/count percentages, category hover and keyboard-focus details.
 - MIT licence approved by the owner and added. Third-party distribution review remains outstanding.
+- Quiet compression (default on) inserts a rest interval equal to each processed file's duration before the next file. Idle-only (default off) waits for two minutes without session keyboard/mouse input before each file. Preferences persist locally and can change during a job; Pause/Cancel/Quit still take precedence. These controls reduce sustained activity but do not cap bandwidth within a single file.
 
 ## Remaining implementation
 
-- Quiet mode with controlled background resource use and idle-only work. Benchmark on disposable fixtures; do not modify real games during automated tests.
+- Benchmark Quiet/idle-only responsiveness on disposable fixtures. A strict disk-bandwidth cap remains unavailable: Microsoft's Job Object I/O rate API is explicitly unsupported on Windows 10 1607 and newer. Do not advertise such a cap.
 - Tested optional 4K-to-1080p video profiles, probing, preview, validated output and transactional replacement. Cyberpunk's inspected main video archive had no 4K candidates; no game is certified for conversion yet.
 - Local original backups: chosen location and duration, minimum seven days, retention after success, automatic expiry while running/at next start, incomplete recovery copies retained, active restore protected from deletion.
 - Restore conflicts: preserve a newer/changed game file and offer export of its original backup separately (owner approved 2026-11-06). Verify backup integrity before restore/export.

@@ -1,5 +1,7 @@
 # Implementation checkpoint
 
+2026-11-06 second increment: persistent Quiet and Idle-only settings implemented. Quiet rests between files; Idle-only waits for two minutes without session input. No strict per-file disk bandwidth cap is claimed. Validation: 24 Rust tests, eight UI flows, Clippy and desktop build passed. Isolated native WebView2 smoke verified the idle gate (debug test input), Pause/Resume, compression/decompression, and unchanged generated files. Native test output: `.local/smoke-1793958755175`. Next: local video-backup foundation and supported conversion profiles.
+
 2026-11-06 first update increment: Pause/Resume, Fast/Balanced/Maximum compression, background worker scheduling, richer interactive storage categories and MIT licensing. Validation: 21 Rust tests, seven Playwright flows, Clippy with warnings denied, formatting and frontend build passed. Native round-trip tests cover all three algorithms and unchanged fixture contents. Small-window chart screenshot inspected. Debug desktop build refreshed; no real games modified during tests. This increment has not received a new native UI smoke run or performance benchmark. See [docs/next-update.md](docs/next-update.md) for the entire authorised backlog. Game-video replacement and public release remain unavailable.
 
 Updated: 2026-11-05. Analyser and compression milestones validated locally; next work: Cyberpunk video compatibility and account feasibility.
