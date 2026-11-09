@@ -76,6 +76,11 @@ export interface VideoSettings {
   backupDirectory: string | null;
   retentionDays: number;
 }
+export interface UpdateStatus {
+  state: string;
+  version: string | null;
+  message: string;
+}
 export interface VideoCandidate {
   path: string;
   bytes: number;

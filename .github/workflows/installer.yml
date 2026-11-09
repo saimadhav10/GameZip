@@ -1,6 +1,11 @@
 name: Build review installer
 on:
   workflow_dispatch:
+    inputs:
+      sign_updates:
+        description: 'Create signed updater artifacts (requires TAURI_SIGNING_PRIVATE_KEY secret)'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -25,7 +30,25 @@ jobs:
       - run: npm test
       - run: cargo test --locked --manifest-path src-tauri/Cargo.toml
       - run: cargo clippy --locked --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
-      - run: npm run tauri build -- --bundles nsis
+      - run: node ../scripts/third-party-notices.mjs
+      - if: ${{ !inputs.sign_updates }}
+        run: npm run tauri build -- --bundles nsis
+      - name: Build signed update for review
+        if: ${{ inputs.sign_updates }}
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        shell: pwsh
+        run: |
+          if (-not $env:TAURI_SIGNING_PRIVATE_KEY) { throw 'Configure the updater signing secret first.' }
+          npm run tauri build -- --bundles nsis --config src-tauri/tauri.updater.conf.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          node ../scripts/update-manifest.mjs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $installer = @(Get-ChildItem -LiteralPath src-tauri/target/release/bundle/nsis -Filter '*-setup.exe')
+          if ($installer.Count -ne 1) { throw 'Expected one signed installer.' }
+          $env:GAMEZIP_TEST_INSTALLER = $installer[0].FullName
+          cargo test --locked --manifest-path src-tauri/Cargo.toml --lib updater::tests::built_installer_signature -- --ignored
       - name: Write installer checksums
         shell: pwsh
         run: |
@@ -39,4 +62,6 @@ jobs:
           path: |
             app/src-tauri/target/release/bundle/nsis/*-setup.exe
             app/src-tauri/target/release/bundle/nsis/SHA256SUMS.txt
+            app/src-tauri/target/release/bundle/nsis/*.sig
+            app/src-tauri/target/release/bundle/nsis/latest.json
           if-no-files-found: error

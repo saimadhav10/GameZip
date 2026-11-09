@@ -176,7 +176,10 @@ pub fn start_video_preview(
 ) -> Result<Job, String> {
     let engine = state.0.clone();
     let mut active = engine.active.lock().map_err(|e| e.to_string())?;
-    if active.is_some() || engine.quitting.load(Ordering::Relaxed) {
+    if active.is_some()
+        || engine.quitting.load(Ordering::Relaxed)
+        || engine.updating.load(Ordering::SeqCst)
+    {
         return Err("Wait for the current job to finish.".into());
     }
     let game = engine.db.game(&id)?;
@@ -332,13 +335,18 @@ pub(crate) fn start_maintenance(engine: std::sync::Weak<crate::Engine>) {
                 break;
             }
             {
-                let _background = scheduling::Background::enter();
-                let warnings = match engine.db.backup_locations() {
-                    Ok(paths) => expire_locations(&paths, now()),
-                    Err(error) => vec![format!("Cannot check backup locations: {error}")],
+                let Ok(_io) = engine.backup_io.lock() else {
+                    break;
                 };
-                if let Ok(mut current) = engine.backup_warnings.lock() {
-                    *current = warnings;
+                if !engine.updating.load(Ordering::SeqCst) {
+                    let _background = scheduling::Background::enter();
+                    let warnings = match engine.db.backup_locations() {
+                        Ok(paths) => expire_locations(&paths, now()),
+                        Err(error) => vec![format!("Cannot check backup locations: {error}")],
+                    };
+                    if let Ok(mut current) = engine.backup_warnings.lock() {
+                        *current = warnings;
+                    }
                 }
             }
             drop(engine);
@@ -385,6 +393,10 @@ pub async fn export_video_backup(
 ) -> Result<(), String> {
     let engine = state.0.clone();
     tauri::async_runtime::spawn_blocking(move || {
+        let _io = engine.backup_io.lock().map_err(|e| e.to_string())?;
+        if engine.updating.load(Ordering::SeqCst) {
+            return Err("Wait for the app update to finish.".into());
+        }
         let _background = scheduling::Background::enter();
         let root = engine
             .db

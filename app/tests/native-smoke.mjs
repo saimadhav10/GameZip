@@ -123,6 +123,10 @@ try {
       );
       assert.equal(paused.state, "paused");
       assert.equal(paused.files, 0);
+      await assert.rejects(
+        invoke("install_update", { version: "99.0.0" }),
+        /Finish or cancel the current job/,
+      );
       await invoke("pause_job", { id: waiting.id, paused: false });
     }
     let outcome;

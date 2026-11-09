@@ -10,10 +10,15 @@ import type {
   VideoSettings,
   VideoCandidate,
   BackupInventory,
+  UpdateStatus,
 } from "./types";
 
 export const desktop = isTauri();
 export const api = {
+  updateStatus: () => invoke<UpdateStatus>("update_status"),
+  checkUpdate: () => invoke<UpdateStatus>("check_update"),
+  installUpdate: (version: string) =>
+    invoke<void>("install_update", { version }),
   videoSettings: () => invoke<VideoSettings>("video_settings"),
   saveVideoSettings: (value: VideoSettings) =>
     invoke<VideoSettings>("save_video_settings", { value }),

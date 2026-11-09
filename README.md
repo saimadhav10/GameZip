@@ -13,7 +13,15 @@ A local Windows game storage analyser and lossless compressor, built with Tauri,
 - Inspect storage by graphics/textures, videos, audio, explicit mod directories, DLLs/executables, game archives and other files; hover or focus chart categories for details. Rescan older reports to update their categories.
 - Check running game processes and free space; stop after the current file when cancelling, quitting, or detecting a game launch.
 
-The analyser and compression milestones are available. Video conversion/backups and account connections are not enabled yet. Scanning never modifies game files. See [project_plan.md](project_plan.md) for the agreed scope and [implementation_status.md](implementation_status.md) for the implementation checkpoint.
+Game details → Videos can create a separate 1080p preview from supported standalone 4K H.264 MP4 files using user-supplied FFmpeg tools. Original game files stay unchanged. Settings includes local backup location/retention (minimum seven days), inventory and safe export. Game-video replacement and provider account connections remain unavailable. See [implementation_status.md](implementation_status.md) for validation and limits.
+
+The updater checks GitHub at startup and every six hours; installation requires confirmation and waits for active jobs to be finished or cancelled. No public release feed is published yet. Development builds are not a public beta.
+
+## Installation status
+
+The NSIS installer and terminal downloader are ready for release validation. **No public download or WinGet package is available yet.** After a release is published, download its installer from [GitHub Releases](https://github.com/saimadhav10/GameZip/releases), or download and inspect [scripts/install.ps1](scripts/install.ps1), then run `powershell -NoProfile -File .\install.ps1`. Use `-DownloadOnly` to download and checksum-verify without starting installation, or `-Version 0.1.0` to select a published tag. The script fails safely if the release/assets are absent.
+
+GameZip uses the [MIT licence](LICENSE); dependency and font licences are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), included in the installer. FFmpeg is not bundled.
 
 ## Develop on Windows
 

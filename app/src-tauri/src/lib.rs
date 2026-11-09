@@ -8,6 +8,7 @@ pub mod media;
 mod model;
 mod scanner;
 mod scheduling;
+mod updater;
 mod video_service;
 
 use database::Database;
@@ -30,6 +31,9 @@ struct Active {
     pause: Option<Arc<scheduling::Pause>>,
 }
 struct Engine {
+    backup_io: Mutex<()>,
+    updates: updater::Updates,
+    updating: AtomicBool,
     backup_warnings: Mutex<Vec<String>>,
     db: Database,
     performance: scheduling::Policy,
@@ -190,7 +194,10 @@ fn start_compression(
 ) -> Result<Job, String> {
     let engine = state.0.clone();
     let mut active = engine.active.lock().map_err(|e| e.to_string())?;
-    if active.is_some() || engine.quitting.load(Ordering::Relaxed) {
+    if active.is_some()
+        || engine.quitting.load(Ordering::Relaxed)
+        || engine.updating.load(Ordering::SeqCst)
+    {
         return Err("Wait for the current job to finish.".into());
     }
     let mut prepared = engine.prepared.lock().map_err(|e| e.to_string())?;
@@ -269,7 +276,7 @@ fn start_scan(
 ) -> Result<Job, String> {
     let engine = state.0.clone();
     let mut active = engine.active.lock().map_err(|e| e.to_string())?;
-    if active.is_some() {
+    if active.is_some() || engine.updating.load(Ordering::SeqCst) {
         return Err("A job is already running. Wait for it to finish or cancel it.".into());
     }
     if engine.quitting.load(Ordering::Relaxed) {
@@ -395,6 +402,7 @@ pub fn run() {
         }))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let directory = app.path().app_data_dir()?;
             // Isolate native integration tests from the user's library. Release
@@ -407,6 +415,9 @@ pub fn run() {
             let db =
                 Database::open(directory.join("gamezip.sqlite")).map_err(std::io::Error::other)?;
             app.manage(AppState(Arc::new(Engine {
+                backup_io: Mutex::new(()),
+                updates: updater::Updates::default(),
+                updating: AtomicBool::new(false),
                 backup_warnings: Mutex::new(Vec::new()),
                 performance: scheduling::Policy::new(
                     db.performance().map_err(std::io::Error::other)?,
@@ -418,6 +429,7 @@ pub fn run() {
                 preparation_generation: AtomicU64::new(0),
             })));
             video_service::start_maintenance(Arc::downgrade(&app.state::<AppState>().0));
+            updater::start_checks(app.handle().clone());
             let open = MenuItem::with_id(app, "open", "Open GameZip", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit GameZip", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&open, &quit])?;
@@ -432,8 +444,12 @@ pub fn run() {
                 "open" => show_window(app),
                 "quit" => {
                     let engine = &app.state::<AppState>().0;
-                    engine.quitting.store(true, Ordering::Relaxed);
                     let active = engine.active.lock().unwrap_or_else(|e| e.into_inner());
+                    if engine.updating.load(Ordering::SeqCst) {
+                        show_window(app);
+                        return;
+                    }
+                    engine.quitting.store(true, Ordering::Relaxed);
                     if let Some(job) = active.as_ref() {
                         job.cancel.store(true, Ordering::Relaxed);
                     } else {
@@ -458,6 +474,9 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            updater::update_status,
+            updater::check_update,
+            updater::install_update,
             list_games,
             list_jobs,
             add_game,

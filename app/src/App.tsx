@@ -24,6 +24,7 @@ import { GameDetails } from "./GameDetails";
 import { Modal } from "./Modal";
 import { CompressionDialog } from "./CompressionDialog";
 import { Videos, VideoPreferences } from "./Videos";
+import { Updates } from "./Updates";
 import type { AppInfo, Game, Job } from "./types";
 import "./App.css";
 
@@ -198,6 +199,7 @@ function App() {
           </span>
         </header>
         <main>
+          <Updates settings={view === "settings"} busy={working || !!running} />
           {!desktop && (
             <div className="notice">
               <CircleAlert size={17} />

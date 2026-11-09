@@ -18,6 +18,14 @@ async function native(page: Page, scenario = "normal") {
     let finishAt = 0;
     let operation = "compress";
     let performance = { quiet: true, idleOnly: false };
+    let updateStatus = {
+      state: scenario === "update" ? "available" : "unavailable",
+      version: scenario === "update" ? "0.2.0" : null,
+      message:
+        scenario === "update"
+          ? "An update is ready to download."
+          : "The update feed has not been published yet.",
+    };
     let videoSettings = {
       toolsDirectory: "C:\\Tools\\ffmpeg\\bin",
       backupDirectory: null as string | null,
@@ -81,6 +89,16 @@ async function native(page: Page, scenario = "normal") {
     };
     w.__TAURI_INTERNALS__ = {
       invoke: async (cmd, args = {}) => {
+        if (cmd === "update_status" || cmd === "check_update")
+          return updateStatus;
+        if (cmd === "install_update") {
+          updateStatus = {
+            ...updateStatus,
+            state: "failed",
+            message: "Update signature verification failed.",
+          };
+          throw new Error(updateStatus.message);
+        }
         if (cmd === "video_settings") return videoSettings;
         if (cmd === "save_video_settings") {
           videoSettings = args.value as typeof videoSettings;
@@ -381,6 +399,35 @@ test("backup settings persist minimum retention and export separately", async ({
       () => document.documentElement.scrollWidth <= innerWidth,
     ),
   ).toBeTruthy();
+});
+
+test("updates require consent, respect active jobs and report verification failures", async ({
+  page,
+}) => {
+  await scannedGame(page, "update");
+  await page.getByRole("button", { name: "Review update" }).click();
+  await page.getByRole("button", { name: "Later", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByRole("button", { name: "Compress", exact: true }).click();
+  await page.getByRole("button", { name: "Start compression" }).click();
+  await page.getByRole("button", { name: "Pause", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Review update" }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  await page.getByRole("button", { name: "Review update" }).click();
+  await page.getByRole("button", { name: "Install and restart" }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "signature verification failed",
+  );
+  await expect(
+    page.getByRole("button", { name: "Install and restart" }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Later", exact: true }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Check for updates" }),
+  ).toBeEnabled();
 });
 
 test("paused compression retains its reservation and can resume or cancel", async ({

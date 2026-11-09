@@ -1,0 +1,20 @@
+// Build metadata only from an existing installer/signature, never placeholders.
+import { readFile, readdir, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import path from "node:path";
+import assert from "node:assert/strict";
+import { fileURLToPath } from "node:url";
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const config = JSON.parse(await readFile(path.join(root, "app/src-tauri/tauri.conf.json"), "utf8"));
+const bundle = path.resolve(process.argv[2] ?? path.join(root, "app/src-tauri/target/release/bundle/nsis"));
+const installers = (await readdir(bundle)).filter(name => name.endsWith("-setup.exe"));
+assert.equal(installers.length, 1, "Expected exactly one installer");
+const installer = installers[0];
+assert(installer.includes(`_${config.version}_x64-setup.exe`), "Installer version/architecture must match config");
+const signature = (await readFile(path.join(bundle, `${installer}.sig`), "utf8")).trim();
+assert(signature.length > 40, "Missing installer signature");
+const data = await readFile(path.join(bundle, installer));
+const manifest = {version: config.version, notes: "See the GitHub release notes for changes.", pub_date: new Date().toISOString(), platforms: {"windows-x86_64": {signature, url: `https://github.com/saimadhav10/GameZip/releases/download/v${config.version}/${encodeURIComponent(installer)}`}}};
+await writeFile(path.join(bundle, "latest.json"), JSON.stringify(manifest, null, 2) + "\n");
+await writeFile(path.join(bundle, "SHA256SUMS.txt"), `${createHash("sha256").update(data).digest("hex")}  ${installer}\n`);
+console.log(`Prepared updater metadata for ${config.version}. Upload alongside the signed installer only after release validation.`);

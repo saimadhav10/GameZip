@@ -6,7 +6,7 @@ The native core now includes two foundations. Neither is wired to game-video rep
 
 `backups::Vault` stores a SQLite ledger beside UUID-named original copies in a dedicated chosen directory. Copies are streamed and SHA-256 verified. Retention must be at least seven days and has no expiry until a successful conversion is recorded and the converted file's hash is checked. Expiry deletes only the opened, verified backup file by Windows handle. Preparing, ready and restoring records are retained, including after restart. A failed deletion can be reconciled after restart.
 
-If a game update changes the converted video, beginning a restore is refused and the original can be exported to a separate new file. Export never overwrites an existing destination. The restore reservation prevents expiry but does not yet implement replacing a game's current video. Automatic cleanup scheduling, backup settings/inventory UI, replacement/restore transaction recovery and user-facing export remain to be connected.
+If a game update changes the converted video, beginning a restore is refused and the original can be exported to a separate new file. Export never overwrites an existing destination. The restore reservation prevents expiry but does not yet implement replacing a game's current video. Automatic cleanup scheduling, backup settings/inventory UI and user-facing export were connected on 2026-11-09; replacement/restore transaction recovery remains unavailable.
 
 ## Sample preview engine
 

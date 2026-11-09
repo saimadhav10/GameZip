@@ -1605,6 +1605,21 @@ input[type="checkbox"] {
   margin-top: 18px;
   padding: 22px;
 }
+.update-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+.update-panel p {
+  margin: 6px 0 0;
+}
+.update-panel small {
+  flex-basis: 100%;
+}
 .video-settings summary,
 .video-help summary {
   cursor: pointer;
