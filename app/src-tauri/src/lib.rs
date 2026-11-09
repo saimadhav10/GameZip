@@ -8,6 +8,7 @@ pub mod media;
 mod model;
 mod scanner;
 mod scheduling;
+mod video_service;
 
 use database::Database;
 use model::{Game, Job, now};
@@ -29,6 +30,7 @@ struct Active {
     pause: Option<Arc<scheduling::Pause>>,
 }
 struct Engine {
+    backup_warnings: Mutex<Vec<String>>,
     db: Database,
     performance: scheduling::Policy,
     active: Mutex<Option<Active>>,
@@ -405,6 +407,7 @@ pub fn run() {
             let db =
                 Database::open(directory.join("gamezip.sqlite")).map_err(std::io::Error::other)?;
             app.manage(AppState(Arc::new(Engine {
+                backup_warnings: Mutex::new(Vec::new()),
                 performance: scheduling::Policy::new(
                     db.performance().map_err(std::io::Error::other)?,
                 ),
@@ -414,6 +417,7 @@ pub fn run() {
                 prepared: Mutex::new(None),
                 preparation_generation: AtomicU64::new(0),
             })));
+            video_service::start_maintenance(Arc::downgrade(&app.state::<AppState>().0));
             let open = MenuItem::with_id(app, "open", "Open GameZip", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit GameZip", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&open, &quit])?;
@@ -464,6 +468,13 @@ pub fn run() {
             pause_job,
             open_game_folder,
             app_info,
+            video_service::video_settings,
+            video_service::save_video_settings,
+            video_service::video_candidates,
+            video_service::start_video_preview,
+            video_service::open_job_output,
+            video_service::video_backups,
+            video_service::export_video_backup,
             set_performance,
             prepare_compression,
             start_compression

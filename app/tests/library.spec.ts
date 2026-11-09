@@ -18,6 +18,11 @@ async function native(page: Page, scenario = "normal") {
     let finishAt = 0;
     let operation = "compress";
     let performance = { quiet: true, idleOnly: false };
+    let videoSettings = {
+      toolsDirectory: "C:\\Tools\\ffmpeg\\bin",
+      backupDirectory: null as string | null,
+      retentionDays: 7,
+    };
     const scan = {
       files: 23,
       logicalBytes: 2147483648,
@@ -76,6 +81,69 @@ async function native(page: Page, scenario = "normal") {
     };
     w.__TAURI_INTERNALS__ = {
       invoke: async (cmd, args = {}) => {
+        if (cmd === "video_settings") return videoSettings;
+        if (cmd === "save_video_settings") {
+          videoSettings = args.value as typeof videoSettings;
+          return videoSettings;
+        }
+        if (cmd === "video_backups")
+          return {
+            backups: [
+              {
+                vault: "vault-fixture",
+                record: {
+                  id: "original-fixture",
+                  original_path: "D:\\Games\\Nebula Rift\\movies\\intro.mp4",
+                  bytes: 536870912,
+                  state: "Completed",
+                  expires_at: 1794990000,
+                },
+              },
+            ],
+            warnings: [],
+          };
+        if (cmd === "plugin:dialog|save") return "C:\\Exports\\original.mp4";
+        if (cmd === "export_video_backup") return;
+        if (cmd === "video_candidates")
+          return scenario === "no-videos"
+            ? []
+            : [
+                {
+                  path: "movies/intro.mp4",
+                  bytes: 536870912,
+                  previewAvailable: true,
+                },
+                {
+                  path: "movies/ending.bk2",
+                  bytes: 800000000,
+                  previewAvailable: false,
+                },
+              ];
+        if (cmd === "start_video_preview") {
+          if (scenario === "unsupported-video")
+            throw new Error(
+              "Only standard-colour 4K H.264 videos can be previewed.",
+            );
+          finishAt = Date.now() + 2200;
+          const job = {
+            id: "preview-fixture",
+            gameId: "test-game",
+            gameName: "Nebula Rift",
+            operation: "video_preview",
+            state: "running",
+            files: 0,
+            totalFiles: 1,
+            logicalBytes: 0,
+            beforeBytes: 536870912,
+            afterBytes: 0,
+            startedAt: 1793680000,
+            finishedAt: null,
+            message: "Creating a separate 1080p preview.",
+          };
+          jobs.unshift(job);
+          return job;
+        }
+        if (cmd === "open_job_output") return;
         if (cmd === "list_games") return structuredClone(games);
         if (cmd === "app_info")
           return {
@@ -91,6 +159,12 @@ async function native(page: Page, scenario = "normal") {
           if (jobs[0]?.state === "running" && Date.now() >= finishAt) {
             jobs[0].state = "completed";
             jobs[0].message = "Scan complete";
+            if (jobs[0].operation === "video_preview") {
+              jobs[0].afterBytes = 134217728;
+              jobs[0].files = 1;
+              jobs[0].message =
+                "1080p preview ready. The game still uses its original video.";
+            }
             if (jobs[0].operation === "compress") {
               jobs[0].beforeBytes = 1073741824;
               jobs[0].afterBytes = 536870912;
@@ -220,6 +294,94 @@ async function scannedGame(page: Page, scenario = "normal") {
     page.getByRole("heading", { name: "What's taking space" }),
   ).toBeVisible();
 }
+
+test("video previews keep originals and unsupported formats have no action", async ({
+  page,
+}) => {
+  await scannedGame(page);
+  await page.getByRole("button", { name: "Videos", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(
+    dialog.getByText("Format not supported", { exact: false }),
+  ).toBeVisible();
+  await expect(
+    dialog.getByRole("button", { name: "Create 1080p preview" }),
+  ).toHaveCount(1);
+  await page.setViewportSize({ width: 720, height: 700 });
+  await page.screenshot({ path: "test-results/videos-small.png" });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
+  await dialog.getByRole("button", { name: "Create 1080p preview" }).click();
+  await expect(
+    page.getByRole("button", { name: "Pause", exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Open preview" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "1080p preview ready. The game still uses its original video.",
+    ),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Open preview" }).click();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+});
+
+test("unsupported source reports the native reason without starting a job", async ({
+  page,
+}) => {
+  await scannedGame(page, "unsupported-video");
+  await page.getByRole("button", { name: "Videos", exact: true }).click();
+  await page.getByRole("button", { name: "Create 1080p preview" }).click();
+  await expect(page.getByRole("alert")).toContainText(
+    "Only standard-colour 4K",
+  );
+  await expect(page.getByRole("dialog")).toBeVisible();
+});
+
+test("backup settings persist minimum retention and export separately", async ({
+  page,
+}) => {
+  await native(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByText("Videos & backups", { exact: true }).click();
+  const retention = page.getByRole("spinbutton", {
+    name: "Backup retention days",
+  });
+  await retention.fill("3");
+  await page.getByRole("button", { name: "Save video settings" }).click();
+  expect(
+    await retention.evaluate(
+      (e: HTMLInputElement) => e.validity.rangeUnderflow,
+    ),
+  ).toBeTruthy();
+  await retention.fill("14");
+  await page.getByRole("button", { name: "Save video settings" }).click();
+  await expect(page.getByRole("status")).toHaveText("Video settings saved.");
+  await page.getByRole("button", { name: "Library", exact: true }).click();
+  await page.getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByText("Videos & backups", { exact: true }).click();
+  await expect(retention).toHaveValue("14");
+  await page.getByRole("button", { name: "View backups" }).click();
+  await page.getByRole("button", { name: "Export original" }).click();
+  await expect(page.getByRole("status")).toHaveText(
+    "Original exported. Game files were kept.",
+  );
+  await page.setViewportSize({ width: 720, height: 700 });
+  await page.screenshot({
+    path: "test-results/video-settings-small.png",
+    fullPage: true,
+  });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
+});
 
 test("paused compression retains its reservation and can resume or cancel", async ({
   page,

@@ -47,7 +47,7 @@ fn error(e: impl std::fmt::Display) -> String {
     e.to_string()
 }
 
-fn pin_directories(path: &Path) -> Result<Vec<File>, String> {
+pub(crate) fn pin_directories(path: &Path) -> Result<Vec<File>, String> {
     let mut handles = Vec::new();
     for ancestor in path.ancestors() {
         let meta = fs::symlink_metadata(ancestor).map_err(error)?;
@@ -58,20 +58,23 @@ fn pin_directories(path: &Path) -> Result<Vec<File>, String> {
         {
             use std::os::windows::fs::OpenOptionsExt;
             use windows_sys::Win32::Storage::FileSystem::*;
-            handles.push(
-                OpenOptions::new()
-                    .access_mode(FILE_READ_ATTRIBUTES)
-                    .share_mode(FILE_SHARE_READ | FILE_SHARE_WRITE)
-                    .custom_flags(FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT)
-                    .open(ancestor)
-                    .map_err(error)?,
-            );
+            let handle = OpenOptions::new()
+                .access_mode(FILE_READ_ATTRIBUTES)
+                .share_mode(FILE_SHARE_READ | FILE_SHARE_WRITE)
+                .custom_flags(FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OPEN_REPARSE_POINT)
+                .open(ancestor)
+                .map_err(error)?;
+            let opened = handle.metadata().map_err(error)?;
+            if !opened.is_dir() || crate::filesystem::is_link(&opened) {
+                return Err("Directory changed or contains a junction.".into());
+            }
+            handles.push(handle);
         }
     }
     Ok(handles)
 }
 
-fn read_locked(path: &Path, deleting: bool) -> Result<File, String> {
+pub(crate) fn read_locked(path: &Path, deleting: bool) -> Result<File, String> {
     let mut options = OpenOptions::new();
     options.read(true);
     #[cfg(windows)]

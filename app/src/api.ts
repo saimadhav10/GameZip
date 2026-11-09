@@ -1,5 +1,5 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
+import { open, save } from "@tauri-apps/plugin-dialog";
 import type {
   AppInfo,
   Candidate,
@@ -7,10 +7,26 @@ import type {
   Game,
   Job,
   CompressionPreview,
+  VideoSettings,
+  VideoCandidate,
+  BackupInventory,
 } from "./types";
 
 export const desktop = isTauri();
 export const api = {
+  videoSettings: () => invoke<VideoSettings>("video_settings"),
+  saveVideoSettings: (value: VideoSettings) =>
+    invoke<VideoSettings>("save_video_settings", { value }),
+  videos: (id: string) => invoke<VideoCandidate[]>("video_candidates", { id }),
+  previewVideo: (id: string, path: string) =>
+    invoke<Job>("start_video_preview", { id, path }),
+  openPreview: (id: string) => invoke<void>("open_job_output", { id }),
+  backups: () => invoke<BackupInventory>("video_backups"),
+  exportBackup: (vault: string, id: string, destination: string) =>
+    invoke<void>("export_video_backup", { vault, id, destination }),
+  pickVideoFolder: (title: string) =>
+    open({ directory: true, multiple: false, title }),
+  pickExport: () => save({ title: "Export original to a new file" }),
   games: () => invoke<Game[]>("list_games"),
   jobs: () => invoke<Job[]>("list_jobs"),
   info: () => invoke<AppInfo>("app_info"),

@@ -1601,3 +1601,77 @@ input[type="checkbox"] {
   color: var(--muted);
   align-self: center;
 }
+.video-settings {
+  margin-top: 18px;
+  padding: 22px;
+}
+.video-settings summary,
+.video-help summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.video-settings details > p,
+.video-help {
+  margin-top: 18px;
+}
+.video-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+.video-row > div {
+  min-width: 0;
+}
+.video-row strong,
+.video-row small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.video-row strong {
+  font-size: 13px;
+}
+.video-row small {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.video-row button {
+  flex-shrink: 0;
+}
+.video-list {
+  max-height: 340px;
+  overflow-y: auto;
+}
+.retention {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+.retention input {
+  width: 85px;
+  padding: 8px;
+  background: var(--bg);
+  color: inherit;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.video-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+.video-help {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+@media (max-width: 720px) {
+  .video-row {
+    flex-wrap: wrap;
+  }
+}

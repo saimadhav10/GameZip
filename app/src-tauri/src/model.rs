@@ -64,6 +64,8 @@ pub struct Job {
     pub before_bytes: u64,
     #[serde(default)]
     pub after_bytes: u64,
+    #[serde(default)]
+    pub output_path: Option<String>,
 }
 
 fn scan_operation() -> String {

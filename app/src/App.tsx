@@ -23,6 +23,7 @@ import { AddGames } from "./AddGames";
 import { GameDetails } from "./GameDetails";
 import { Modal } from "./Modal";
 import { CompressionDialog } from "./CompressionDialog";
+import { Videos, VideoPreferences } from "./Videos";
 import type { AppInfo, Game, Job } from "./types";
 import "./App.css";
 
@@ -40,6 +41,7 @@ function App() {
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<Game | null>(null);
   const [working, setWorking] = useState(false);
+  const [videos, setVideos] = useState<Game | null>(null);
   const [compression, setCompression] = useState<{
     game: Game;
     operation: "compress" | "decompress";
@@ -228,7 +230,9 @@ function App() {
                       ? "Compressing"
                       : running.operation === "decompress"
                         ? "Decompressing"
-                        : "Scanning"}{" "}
+                        : running.operation === "video_preview"
+                          ? "Previewing video for"
+                          : "Scanning"}{" "}
                 <strong>{running.gameName}</strong>
               </span>
               <small>{running.files.toLocaleString()} files</small>
@@ -245,6 +249,7 @@ function App() {
               <GameDetails
                 key={selected.id}
                 game={selected}
+                videos={() => setVideos(selected)}
                 busy={working || !!running}
                 scan={() => action(() => api.scan(selected.id))}
                 back={() => setSelectedId(null)}
@@ -506,7 +511,9 @@ function App() {
                             ? `${bytes(Math.max(0, job.beforeBytes - job.afterBytes))} saved on processed files`
                             : job.operation === "decompress"
                               ? `${bytes(Math.max(0, job.afterBytes - job.beforeBytes))} added on processed files`
-                              : `${bytes(job.logicalBytes)} measured`}{" "}
+                              : job.operation === "video_preview"
+                                ? `${bytes(job.afterBytes)} preview · original kept`
+                                : `${bytes(job.logicalBytes)} measured`}{" "}
                           · {dateTime(job.startedAt)}
                         </small>
                         {activeJob(job) && job.state !== "paused" && (
@@ -519,7 +526,7 @@ function App() {
                         )}
                       </div>
                       {activeJob(job) &&
-                        job.operation !== "scan" &&
+                        ["compress", "decompress"].includes(job.operation) &&
                         job.state !== "stopping" && (
                           <button
                             className="secondary"
@@ -536,6 +543,18 @@ function App() {
                             {["paused", "pausing"].includes(job.state)
                               ? "Resume"
                               : "Pause"}
+                          </button>
+                        )}
+                      {job.operation === "video_preview" &&
+                        job.state === "completed" && (
+                          <button
+                            className="secondary"
+                            disabled={working}
+                            onClick={() =>
+                              action(() => api.openPreview(job.id))
+                            }
+                          >
+                            Open preview
                           </button>
                         )}
                       {activeJob(job) ? (
@@ -670,6 +689,7 @@ function App() {
                   </div>
                 </div>
               </section>
+              <VideoPreferences />
               <div className="settings-version">
                 <span className="brand-small">
                   <Zap size={16} />
@@ -697,6 +717,21 @@ function App() {
           operation={compression.operation}
           close={() => setCompression(null)}
           started={async () => {
+            await reload();
+            navigate("jobs");
+          }}
+        />
+      )}
+      {videos && (
+        <Videos
+          game={videos}
+          close={() => setVideos(null)}
+          settings={() => {
+            setVideos(null);
+            navigate("settings");
+          }}
+          started={async () => {
+            setVideos(null);
             await reload();
             navigate("jobs");
           }}

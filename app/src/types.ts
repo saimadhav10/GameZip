@@ -40,7 +40,8 @@ export interface Job {
   message: string;
   startedAt: number;
   finishedAt: number | null;
-  operation: "scan" | "compress" | "decompress";
+  operation: "scan" | "compress" | "decompress" | "video_preview";
+  outputPath?: string | null;
   totalFiles: number | null;
   beforeBytes: number;
   afterBytes: number;
@@ -68,4 +69,34 @@ export interface AppInfo {
   version: string;
   databasePath: string;
   performance: { quiet: boolean; idleOnly: boolean };
+}
+
+export interface VideoSettings {
+  toolsDirectory: string | null;
+  backupDirectory: string | null;
+  retentionDays: number;
+}
+export interface VideoCandidate {
+  path: string;
+  bytes: number;
+  previewAvailable: boolean;
+}
+export interface BackupInventory {
+  backups: {
+    vault: string;
+    record: {
+      id: string;
+      original_path: string;
+      bytes: number;
+      expires_at: number | null;
+      state:
+        | "Preparing"
+        | "Ready"
+        | "Completed"
+        | "Restoring"
+        | "Deleting"
+        | "Expired";
+    };
+  }[];
+  warnings: string[];
 }

@@ -20,3 +20,11 @@ This proves the sample pipeline only. It does not establish any game's codec/con
 - Local verification uses Gyan's FFmpeg 9.0.2 essentials build, downloaded through the Windows build provider linked by [FFmpeg](https://www.ffmpeg.org/download.html) and checked against the provider's SHA-256 checksum. Test tools live under ignored `.local/media-tools` and are not bundled or committed.
 - The current test encoder uses libx264. Review the exact FFmpeg build and its GPL/dependency/source obligations before distribution; the application's MIT licence does not replace those obligations. See [FFmpeg's legal guidance](https://ffmpeg.org/legal.html).
 - Next integration must validate free/temporary space, coordinate one active job and running-game checks, bind original-file identity to the backup transaction, expose previews and chosen retention/location, implement recoverable replacement/restore, and certify an actual supported game/build before enabling replacement.
+# App integration (2026-11-09)
+
+Game details → Videos lists up to 200 standalone videos. MP4 files can be submitted for profile validation and separate 1080p preview generation; the original remains in place. Jobs opens the completed preview. Settings → Videos & backups chooses an existing trusted FFmpeg bin folder, a dedicated backup folder outside registered games, and retention of at least seven days. FFmpeg is not bundled. Historical vault locations remain registered when the chosen location changes.
+
+Backup inventory can export verified originals to new files. Startup/hourly maintenance expires eligible completed copies and retries unavailable locations on the next pass. Incomplete copies and restore reservations remain protected. These controls do not enable game-file replacement or in-place restoration. No installed game profile has passed playback validation, and the owner has no additional test game available.
+
+Validation: generated-media native WebView2 preview, unsupported media UI errors, backup preferences/export UI, and disposable-vault offline/reconnect expiry tests. Previews stay in the local app-data `Previews` directory and use additional storage. Failed/interrupted preview output may remain there for manual removal; it is never used by a game.
+

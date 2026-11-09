@@ -16,6 +16,8 @@ Authorised 2026-11-06. Keep the supplied minimal visual design and local-only da
 
 ## Remaining implementation
 
+2026-11-09 progress: separate video-preview UI, tool/backup preferences, retained-backup inventory/export, startup/hourly expiry and offline-drive retry are implemented. Native UI conversion passed on generated 4K media. The user has no additional game for playback validation; game replacement stays disabled. Preview files consume extra space and do not count as game-storage savings.
+
 - Benchmark Quiet/idle-only responsiveness on disposable fixtures. A strict disk-bandwidth cap remains unavailable: Microsoft's Job Object I/O rate API is explicitly unsupported on Windows 10 1607 and newer. Do not advertise such a cap.
 - Tested optional 4K-to-1080p video profiles, probing, preview, validated output and transactional replacement. Cyberpunk's inspected main video archive had no 4K candidates; no game is certified for conversion yet.
 - Local original backups: chosen location and duration, minimum seven days, retention after success, automatic expiry while running/at next start, incomplete recovery copies retained, active restore protected from deletion.

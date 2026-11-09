@@ -155,6 +155,7 @@ export function GameDetails({
   openFolder,
   remove,
   compress,
+  videos,
 }: {
   game: Game;
   busy: boolean;
@@ -163,6 +164,7 @@ export function GameDetails({
   openFolder: () => void;
   remove: () => void;
   compress: (operation: "compress" | "decompress") => void;
+  videos: () => void;
 }) {
   const [filter, setFilter] = useState("");
   const result = game.scan;
@@ -184,6 +186,13 @@ export function GameDetails({
           </p>
         </div>
         <div className="detail-actions">
+          <button
+            className="secondary"
+            disabled={busy || game.missing}
+            onClick={videos}
+          >
+            Videos
+          </button>
           <button
             className={result ? "secondary" : "primary"}
             disabled={busy || game.missing}

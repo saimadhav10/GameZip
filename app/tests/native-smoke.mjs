@@ -2,6 +2,7 @@ import { chromium } from "@playwright/test";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import path from "node:path";
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 
 const root = path.resolve(process.argv[2]);
 assert(
@@ -148,6 +149,93 @@ try {
     await page
       .getByRole("button", { name: "Cancel", exact: true })
       .waitFor({ state: "detached" });
+  }
+  if (process.env.GAMEZIP_TEST_FFMPEG) {
+    const ffmpeg = path.resolve(process.env.GAMEZIP_TEST_FFMPEG);
+    const sample = path.join(fixture, "sample-4k.mp4");
+    execFileSync(
+      ffmpeg,
+      [
+        "-nostdin",
+        "-v",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        "color=c=blue:s=3840x2160:r=24:d=1",
+        "-c:v",
+        "libx264",
+        "-threads",
+        "2",
+        "-pix_fmt",
+        "yuv420p",
+        sample,
+      ],
+      { windowsHide: true },
+    );
+    const original = await readFile(sample);
+    const backup = path.join(root, "originals");
+    await mkdir(backup);
+    await assert.rejects(
+      invoke("save_video_settings", {
+        value: {
+          toolsDirectory: path.dirname(ffmpeg),
+          backupDirectory: backup,
+          retentionDays: 3,
+        },
+      }),
+      /seven days/,
+    );
+    await assert.rejects(
+      invoke("save_video_settings", {
+        value: {
+          toolsDirectory: path.dirname(ffmpeg),
+          backupDirectory: fixture,
+          retentionDays: 7,
+        },
+      }),
+      /outside your game folders/,
+    );
+    await invoke("save_video_settings", {
+      value: {
+        toolsDirectory: path.dirname(ffmpeg),
+        backupDirectory: backup,
+        retentionDays: 14,
+      },
+    });
+    assert.equal((await invoke("video_settings")).retentionDays, 14);
+    await page.getByRole("button", { name: "Library", exact: true }).click();
+    await page.getByRole("button", { name: "View details" }).click();
+    await page.getByRole("button", { name: "Videos", exact: true }).click();
+    await page
+      .locator(".video-row")
+      .filter({ hasText: "sample-4k.mp4" })
+      .getByRole("button", { name: "Create 1080p preview" })
+      .click();
+    await page
+      .getByRole("button", { name: "Open preview" })
+      .waitFor({ timeout: 60000 });
+    const preview = (await invoke("list_jobs")).find(
+      (j) => j.operation === "video_preview",
+    );
+    assert.equal(preview.state, "completed", preview.message);
+    const probe = JSON.parse(
+      execFileSync(
+        path.join(path.dirname(ffmpeg), "ffprobe.exe"),
+        ["-v", "error", "-show_streams", "-of", "json", preview.outputPath],
+        { windowsHide: true, encoding: "utf8" },
+      ),
+    );
+    assert.equal(probe.streams[0].width, 1920);
+    assert.equal(probe.streams[0].height, 1080);
+    assert.deepEqual(await readFile(sample), original);
+    await page.screenshot({
+      path: path.join(root, "native-video-preview.png"),
+    });
+    assert.deepEqual((await invoke("video_backups")).backups, []);
+    console.log(
+      "Native video preview: 4K fixture to 1080p through UI, original unchanged; backup settings and retention guards passed.",
+    );
   }
   await invoke("remove_game", { id: game.id });
   assert.equal((await invoke("list_games")).length, 0);

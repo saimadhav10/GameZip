@@ -153,21 +153,16 @@ impl Tools {
         if !metadata.is_file() || crate::filesystem::is_link(&metadata) {
             return Err("Choose a regular video file.".into());
         }
-        let mut options = fs::OpenOptions::new();
-        options.read(true);
-        #[cfg(windows)]
-        {
-            use std::os::windows::fs::OpenOptionsExt;
-            use windows_sys::Win32::Storage::FileSystem::FILE_SHARE_READ;
-            options.share_mode(FILE_SHARE_READ);
-        }
         // Keep the original stable throughout probing and encoding on Windows.
-        let original: File = options.open(input).map_err(|e| e.to_string())?;
+        let _source_dirs =
+            crate::backups::pin_directories(input.parent().ok_or("Missing video directory")?)?;
+        let original: File = crate::backups::read_locked(input, false)?;
         let source = self.probe(input, cancel)?;
         let source_video = validate_source(&source)?;
         if !output_directory.is_absolute() || !output_directory.is_dir() {
             return Err("Choose an existing absolute preview directory.".into());
         }
+        let _output_dirs = crate::backups::pin_directories(output_directory)?;
         let directory = output_directory.join(format!("gamezip-preview-{}", uuid::Uuid::new_v4()));
         fs::create_dir(&directory).map_err(|e| e.to_string())?;
         let output = directory.join("preview-1080p.mp4");

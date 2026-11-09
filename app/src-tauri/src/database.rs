@@ -17,6 +17,63 @@ pub struct Database {
 }
 
 impl Database {
+    pub fn setting<T: serde::de::DeserializeOwned + Default>(
+        &self,
+        key: &str,
+    ) -> Result<T, String> {
+        use rusqlite::OptionalExtension;
+        let json: Option<String> = self
+            .connection
+            .lock()
+            .map_err(|e| e.to_string())?
+            .query_row("SELECT value FROM settings WHERE key=?1", [key], |r| {
+                r.get(0)
+            })
+            .optional()
+            .map_err(|e| e.to_string())?;
+        json.map(|s| serde_json::from_str(&s).map_err(|e| e.to_string()))
+            .unwrap_or_else(|| Ok(T::default()))
+    }
+
+    pub fn save_video_settings(
+        &self,
+        value: &crate::video_service::VideoSettings,
+    ) -> Result<(), String> {
+        let mut connection = self.connection.lock().map_err(|e| e.to_string())?;
+        let tx = connection.transaction().map_err(|e| e.to_string())?;
+        tx.execute("INSERT INTO settings(key,value) VALUES('video',?1) ON CONFLICT(key) DO UPDATE SET value=excluded.value", [serde_json::to_string(value).map_err(|e| e.to_string())?]).map_err(|e| e.to_string())?;
+        if let Some(root) = &value.backup_directory {
+            tx.execute(
+                "CREATE TABLE IF NOT EXISTS backup_locations(path TEXT PRIMARY KEY)",
+                [],
+            )
+            .map_err(|e| e.to_string())?;
+            tx.execute(
+                "INSERT OR IGNORE INTO backup_locations(path) VALUES(?1)",
+                [root],
+            )
+            .map_err(|e| e.to_string())?;
+        }
+        tx.commit().map_err(|e| e.to_string())
+    }
+
+    pub fn backup_locations(&self) -> Result<Vec<String>, String> {
+        let connection = self.connection.lock().map_err(|e| e.to_string())?;
+        connection
+            .execute(
+                "CREATE TABLE IF NOT EXISTS backup_locations(path TEXT PRIMARY KEY)",
+                [],
+            )
+            .map_err(|e| e.to_string())?;
+        let mut query = connection
+            .prepare("SELECT path FROM backup_locations ORDER BY path")
+            .map_err(|e| e.to_string())?;
+        query
+            .query_map([], |row| row.get(0))
+            .map_err(|e| e.to_string())?
+            .collect::<Result<_, _>>()
+            .map_err(|e| e.to_string())
+    }
     pub fn open(path: PathBuf) -> Result<Self, String> {
         let connection = Connection::open(&path).map_err(|e| e.to_string())?;
         connection.execute_batch("PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
